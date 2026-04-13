@@ -1,0 +1,31 @@
+# Example suite file for `transbench suite --config benchmarks.example.toml`
+
+[[bench]]
+run_name = "cpu-gqa-small"
+arch = "gqa"
+num_layers = 1
+hidden_size = 64
+ffn_mult = 2.0
+num_heads = 4
+seq_len = 32
+batch_size = 2
+warmup = 0
+steps = 3
+device = "cpu"
+dtype = "float32"
+tags = ["baseline", "cpu"]
+
+[[bench]]
+run_name = "cpu-rnn-small"
+arch = "rnn"
+num_layers = 1
+hidden_size = 64
+ffn_mult = 2.0
+num_heads = 4
+seq_len = 32
+batch_size = 2
+warmup = 0
+steps = 3
+device = "cpu"
+dtype = "float32"
+tags = ["recurrent", "cpu"]

@@ -1,0 +1,69 @@
+# A-MIG (Asymmetric Mutual Information Gating) benchmark suite
+# Runs A-MIG "The Skimmer" against standard MIG and GQA baselines
+# on the Poisoned Needle adversarial dataset.
+
+# ── A-MIG: aggressive early-layer skimming ────────────────────────
+[[bench]]
+run_name = "amig-skimmer-poisoned"
+arch = "mig"
+dataset = "poisoned_needle"
+poison_ratio = 0.85
+num_layers = 8
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 10
+steps = 100
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+mig_keep_ratio = 0.05
+mig_layer_keep_ratios = [0.05, 0.05, 0.05, 1.0, 1.0, 1.0, 1.0, 1.0]
+tags = ["amig", "poisoned_needle", "skimmer"]
+
+# ── Standard MIG baseline (uniform keep_ratio, same poison) ──────
+[[bench]]
+run_name = "mig-baseline-poisoned"
+arch = "mig"
+dataset = "poisoned_needle"
+poison_ratio = 0.85
+num_layers = 8
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 10
+steps = 100
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+mig_keep_ratio = 0.7
+tags = ["mig", "poisoned_needle", "baseline"]
+
+# ── GQA baseline (dense attention, same poison) ──────────────────
+[[bench]]
+run_name = "gqa-baseline-poisoned"
+arch = "gqa"
+dataset = "poisoned_needle"
+poison_ratio = 0.85
+num_layers = 8
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 10
+steps = 100
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+tags = ["gqa", "poisoned_needle", "baseline"]

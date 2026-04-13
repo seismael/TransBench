@@ -1,0 +1,32 @@
+*.pth
+*.pyc
+legacy/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.pytest_tmp/
+.cache/
+
+
+.venv/
+dist/
+build/
+*.egg-info/
+*venv*/
+
+# Generated benchmark reports
+reports/*.json
+checkpoints/
+cpu-optim.md
+
+## Development files, not ready to share
+*private/*
+*runs*
+*logs*
+*reports*
+# *Dev/*
+
+.env
+.vscode/

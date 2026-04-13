@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "transbench"
+version = "0.3.0"
+description = "Transformer benchmarking framework for specialized architecture research"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "TransBench contributors" }]
+
+dependencies = [
+  "torch>=2.2",
+  "einops>=0.7",
+  "numpy>=1.24",
+  "tqdm>=4.66",
+  "psutil>=5.9",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.6",
+]
+train = [
+  "datasets>=2.17",
+  "transformers>=4.40",
+  "tensorboard>=2.14",
+  "pytorch-lightning>=2.2",
+  "bitsandbytes>=0.43; platform_system != 'Windows'",
+]
+# Optional dependency for Mamba2/RWKV6/RetNet mixins.
+fla = ["flash-linear-attention>=0.4.0; platform_system != 'Windows'"]
+
+[project.scripts]
+transbench = "transbench.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+  "src/transbench",
+]
+
+[tool.pytest.ini_options]
+addopts = "-q --basetemp=.pytest_tmp"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["transbench"]

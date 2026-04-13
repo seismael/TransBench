@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TransBench Analytics</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <div class="brand__icon">⚡️</div>
+          <div class="brand__text">
+            <h1>TransBench</h1>
+            <p>Architecture Search</p>
+          </div>
+        </div>
+
+        <nav class="controls">
+          <div class="control-group">
+            <label>Dataset Scope</label>
+            <select id="dataset"></select>
+            <small class="muted">Shows datasets in reports + recommended benchmarks.</small>
+          </div>
+
+          <div class="control-group">
+            <label>Aggregation</label>
+            <select id="aggMode">
+              <option value="latest" selected>Latest Run</option>
+              <option value="best">Best Run (Min Loss)</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label>Baseline Comparison</label>
+            <select id="baselineArch">
+              <option value="">— Absolute Values —</option>
+            </select>
+            <small class="muted">Select to see % deltas vs baseline</small>
+          </div>
+
+          <div class="control-group">
+            <div class="flex-row space-between">
+              <label>Architectures</label>
+              <div class="mini-actions">
+                <button id="archAll" type="button">All</button>
+                <button id="archNone" type="button">None</button>
+              </div>
+            </div>
+            <div id="archList" class="arch-checklist" aria-label="Architectures"></div>
+          </div>
+
+          <div class="control-group push-down">
+            <div class="sidebar-hint muted">Tip: use Refresh in the top bar after new runs.</div>
+          </div>
+        </nav>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <button id="sidebarToggle" class="icon-btn" type="button" title="Toggle Sidebar" aria-label="Toggle sidebar">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          <div class="topbar__title">
+            <div class="topbar__headline">TransBench Analytics</div>
+            <div class="topbar__sub muted">Loss, throughput, convergence, and comparisons</div>
+          </div>
+
+          <div class="topbar__actions">
+            <button id="refresh" class="btn btn--primary btn--compact" type="button">Refresh</button>
+            <a class="btn btn--secondary btn--compact" href="/reports/manifest.json" target="_blank" rel="noreferrer">Manifest</a>
+          </div>
+        </header>
+
+        <section class="results" aria-label="Results">
+          <div class="tabs" role="tablist" aria-label="Results tabs">
+            <button
+              class="tab is-active"
+              id="tab-frontier"
+              role="tab"
+              type="button"
+              aria-selected="true"
+              aria-controls="panel-frontier"
+              tabindex="0"
+            >
+              Efficiency Frontier
+            </button>
+            <button
+              class="tab"
+              id="tab-convergence"
+              role="tab"
+              type="button"
+              aria-selected="false"
+              aria-controls="panel-convergence"
+              tabindex="-1"
+            >
+              Convergence Profile
+            </button>
+            <button
+              class="tab"
+              id="tab-compare"
+              role="tab"
+              type="button"
+              aria-selected="false"
+              aria-controls="panel-compare"
+              tabindex="-1"
+            >
+              Comparative Analysis
+            </button>
+          </div>
+
+          <div class="tab-panels">
+            <div
+              class="tab-panel is-active"
+              id="panel-frontier"
+              role="tabpanel"
+              aria-labelledby="tab-frontier"
+            >
+              <section class="panel panel--fill">
+                <div class="panel__header">
+                  <div>
+                    <h3>Efficiency Frontier</h3>
+                    <span class="muted">Loss vs Throughput (Bottom-Right is Best)</span>
+                  </div>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="scatterChart"></canvas>
+                  <div id="scatterEmpty" class="empty" hidden>No scatter data for current selection.</div>
+                </div>
+              </section>
+            </div>
+
+            <div
+              class="tab-panel"
+              id="panel-convergence"
+              role="tabpanel"
+              aria-labelledby="tab-convergence"
+              hidden
+            >
+              <section class="panel panel--fill">
+                <div class="panel__header">
+                  <div>
+                    <h3>Convergence Profile</h3>
+                    <span class="muted">Loss/LR over steps for selected runs</span>
+                  </div>
+                  <select id="seriesMetric" class="select-inline"></select>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="lineChart"></canvas>
+                  <div id="lineEmpty" class="empty" hidden>No time-series data in selected reports.</div>
+                </div>
+              </section>
+            </div>
+
+            <div
+              class="tab-panel"
+              id="panel-compare"
+              role="tabpanel"
+              aria-labelledby="tab-compare"
+              hidden
+            >
+              <section class="panel panel--fill">
+                <div class="panel__header">
+                  <div>
+                    <h3>Comparative Analysis</h3>
+                    <span class="muted" id="tableSubtitle">Deterministic Eval</span>
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table id="compTable" class="data-table">
+                    <thead></thead>
+                    <tbody></tbody>
+                  </table>
+                  <div id="tableEmpty" class="empty" hidden>No reports found for this dataset/selection.</div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
