@@ -34,7 +34,7 @@ SIL replaces continuous attention with discrete rule-selection via a Gumbel-Soft
 Requires Python ≥ 3.10. Optimized for [uv](https://github.com/astral-sh/uv).
 
 ```bash
-git clone https://github.com/YOURUSERNAME/TransBench.git
+git clone https://github.com/seismael/TransBench.git
 cd TransBench
 
 # Core install (CPU benchmarks, synthetic datasets)

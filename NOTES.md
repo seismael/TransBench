@@ -1,86 +1,93 @@
-# TransBench Research Directive: Niche-Optimized Sequence Modeling
+Okay, if you want to keep both tracks alive in your research (the Skimmer for noise resiliency and the Logic Switch for deterministic reasoning), we need to establish a highly rigorous, split-track benchmarking protocol.
 
-## Executive Summary
-This document outlines the strategic pivot for the TransBench benchmarking project. Having validated that standard Mutual Information Gating (MIG) independently converges on industry-standard Mixture-of-Depths (MoD) and Residual Linear Attention (RLA) paradigms, we are shifting focus away from general-purpose sequence modeling. 
-
-We will no longer attempt to beat models like Mamba2 or MiniMax on continuous, generalized language tasks. Instead, we are pivoting to **Architectural Inductive Biases**—designing highly specialized Transformer variants engineered to mathematically outperform general state-of-the-art models in two specific, adversarial environments: **Ultra-High Noise Streams** and **Deterministic Logical Branching**.
+This is the comprehensive ArchiFactory Research Guideline. It defines exactly how to build the adversarial datasets, how to configure the architecture variants, and how to execute the benchmarks to prove your specific architectural advantages.
 
 ---
 
-## The Strategic Pivot: Exploiting Generalist Vulnerabilities
+# ArchiFactory Research Protocol: Niche-Optimized Sequence Modeling
 
-General models (SSMs, standard Transformers, Lightning Attention) are designed as "Jacks of all trades." This generalism introduces fundamental mathematical vulnerabilities:
-1. **Context Dilution:** Recurrent models (like Mamba) must update their hidden state with every token. In environments with 99% noise, the state becomes irreparably diluted.
-2. **Latent Blurring:** Softmax-based attention is a continuous function. When faced with mutually exclusive logical rules, standard models blend them, resulting in hallucinations.
-
-Our research will exploit these vulnerabilities using two specialized architectures.
+**Objective:** To demonstrate that specialized Transformer architectures (A-MIG and SIL) mathematically outperform general sequence models (Mamba2) in specifically designed adversarial environments: High-Noise Streams and Deterministic Logical Branching.
 
 ---
 
-## Track 1: Asymmetric Mutual Information Gating (A-MIG)
-**Codename:** *The Skimmer*
-**Target Domain:** Edge AI, IoT Telemetry, Financial Tick Data, Cyber Log Parsing.
+## Track 1: The Skimmer (A-MIG) vs. Context Dilution
 
-### 1. Architectural Concept
-Unlike standard MoD which distributes sparsity evenly, A-MIG acts as an aggressive filter. The early layers are structurally forbidden from deep reasoning; their singular objective is to classify and drop noise. By physically removing redundant tokens early in the residual stream, the deeper reasoning layers are protected from context dilution.
+**Hypothesis:** In environments with $>80\%$ sequence noise, continuous recurrent models (Mamba2) suffer from context dilution and catastrophic forgetting. An Asymmetric Mutual Information Gated (A-MIG) architecture will maintain high accuracy by physically dropping noise in early layers, shielding the reasoning capacity of deeper layers.
 
-### 2. Structural Design
-* **Layers 0-2 (The Skimmers):** Hard Top-K routing with extreme sparsity ($K \approx 0.05$). Drops 95% of the input sequence.
-* **Layers 3-7 (The Deep Reasoners):** Standard Dense Attention, operating *only* on the highly concentrated 5% signal that survived the skimmers.
+### Phase 1: Architecture Configuration (A-MIG)
+The architecture must be configured as a "funnel."
 
-### 3. TransBench Implementation Protocol
-* Modify `mig_module.py` to accept a `layer_keep_ratios` list rather than a static float. 
-* E.g., `keep_ratios = [0.05, 0.05, 0.05, 1.0, 1.0, 1.0, 1.0, 1.0]`.
+1.  **Modify `mig_module.py`:** Ensure the module can accept a list or schedule of keep ratios per layer, rather than a global constant.
+2.  **Configuration (8-Layer Model):**
+    * **Layer 0 (Extreme Filter):** `keep_ratio = 0.1` (Drops 90% of tokens).
+    * **Layer 1 (Secondary Filter):** `keep_ratio = 0.5` (Drops 50% of remaining tokens).
+    * **Layers 2-7 (Deep Reasoners):** `keep_ratio = 1.0` (Standard Dense Attention).
+3.  **Mechanism:** The early layers must use a Load-Balancing / Z-Loss to quickly learn which tokens to drop without destroying the gradient flow.
 
-### 4. Custom Benchmark: The "Poisoned Needle"
-Standard `TinyStories` will not prove A-MIG's value. We must construct an adversarial dataset.
-* **Dataset Generation:** Take standard `TinyStories` sequences and dynamically inject 80-90% random string literals or repetitive noise blocks in the center of the context window.
-* **Success Metric:** Mamba2's validation loss should spike (hidden state corruption), while A-MIG maintains a loss $< 3.0$ by successfully gating the poison in Layer 0.
+### Phase 2: Adversarial Dataset Generation (The "Poisoned Needle")
+We will weaponize the `TinyStories` dataset.
 
----
+1.  **The Base:** Load a standard `TinyStories` sample (e.g., 200 tokens).
+2.  **The Split:** Identify the midpoint of the sequence (token index 100).
+3.  **The Poison:** Inject 800 tokens of high-entropy "poison."
+    * *Type A (Static Poison):* A repeating string of irrelevant text (e.g., "The system is functioning normally. No errors detected.")
+    * *Type B (High Entropy Poison):* Randomly sampled tokens from the vocabulary.
+4.  **The Task:** The model must read the first half of the story, survive the 800-token poison block, and correctly generate the ending of the story.
 
-## Track 2: Stochastic Induction Layer (SIL)
-**Codename:** *The Logic Switch*
-**Target Domain:** Theorem Proving, Legal Tech, Deterministic Code Execution.
-
-### 1. Architectural Concept
-SIL Abandons continuous attention in favor of discrete rule-selection. By introducing a Gumbel-Softmax bottleneck, the model is forced to make a hard, discrete choice between $K$ latent logical rules before generating output. This prevents "concept blurring" and provides structural explainability.
-
-### 2. Structural Design
-* **The Deterministic Path:** Standard Grouped Query Attention (GQA).
-* **The Probabilistic Path:** A parallel branch where the input $x_t$ is projected into $K$ rule logits. 
-* **The Gumbel Bottleneck:**
-  $$z = \text{Softmax}\left(\frac{l + g}{\tau}\right)$$
-  During the forward pass with `hard=True`, this yields a pure one-hot vector, forcing the architecture to commit to a single discrete rule embedding to add back into the residual stream.
-
-### 3. TransBench Implementation Protocol
-* Isolate `sil_module.py` and ensure the Gumbel temperature $\tau$ is strictly annealed during the training loop. High $\tau$ initially for exploration, decaying to $< 0.1$ to force strict discretization.
-
-### 4. Custom Benchmark: "Bifurcated Grammar"
-* **Dataset Generation:** Create a synthetic task containing two mutually exclusive rules. 
-  * *Rule A:* "Reverse the input sequence."
-  * *Rule B:* "Sort the input sequence alphabetically."
-* **Success Metric:** Measure the "Mode Collapse/Hallucination Rate." Standard Transformers will frequently output partially sorted, partially reversed strings. A successful SIL architecture must demonstrate $0\%$ rule-mixing due to its discrete latent bottleneck.
+### Phase 3: The Benchmark Protocol
+1.  **Baseline:** Train Mamba2 on the "Poisoned Needle" dataset for 2,000 steps.
+2.  **Challenger:** Train A-MIG on the "Poisoned Needle" dataset for 2,000 steps.
+3.  **Success Criteria:**
+    * **Validation Loss:** A-MIG must achieve a significantly lower validation loss ($< 3.5$) than Mamba2.
+    * **Sparsity Metric:** Verify that A-MIG's Layer 0 gate is successfully assigning low scores ($< 0.1$) to the "poison" tokens and high scores to the "story" tokens.
 
 ---
 
-## Immediate Next Steps for the Engineering Agent
+## Track 2: The Logic Switch (SIL) vs. Latent Blurring
 
-1. ~~**Halt General Benchmarking:** Suspend standard `TinyStories` runs against Mamba2.~~ ✅ Done
-2. ~~**Select the Primary Track:** Choose **A-MIG** (Track 1).~~ ✅ Done — A-MIG selected
-3. ~~**Draft the Adversarial Dataset:** Update `src/transbench/datasets.py` to generate the *Poisoned Needle* dataset.~~ ✅ Done — `poisoned_needle` dataset implemented with configurable `poison_ratio`
-4. ~~**Deploy the Niche Architecture:** Wire A-MIG through the full stack.~~ ✅ Done — `mig_module.py` (Top-K + per-layer keep ratios), `benchmark.py`, `cli.py`, `suite.py`, `benchmarks/benchmarks.amig.toml`
+**Hypothesis:** When faced with mutually exclusive logical operations within the same context, continuous models (Mamba2, standard Transformers) suffer from "mode collapse" (blending the rules). The Stochastic Induction Layer (SIL) will prevent this hallucination by forcing a discrete latent bottleneck via Gumbel-Softmax.
 
-### Implementation Summary (A-MIG — Track 1)
-- **`mig_module.py`**: Added `layer_keep_ratios` param, `_effective_keep_ratio()`, `_apply_topk_mask()` with hard Top-K selection via `torch.topk` + scatter mask
-- **`datasets.py`**: Added `poisoned_needle` dataset — injects 80-90% random noise in center tokens, preserving edge "needles"
-- **`cli.py`**: Added `--mig-layer-keep-ratios` (comma-separated) and `--poison-ratio` arguments
-- **`benchmark.py`**: Added `mig_layer_keep_ratios` and `poison_ratio` to `BenchmarkConfig`; wired through `_build_model()` and `make_sampler()`
-- **`suite.py`**: Added TOML support for `mig_layer_keep_ratios` and `poison_ratio`
-- **`benchmarks/benchmarks.amig.toml`**: 3-way comparison: A-MIG Skimmer vs standard MIG vs GQA on Poisoned Needle
+### Phase 1: Architecture Configuration (SIL)
+The architecture must feature a discrete bottleneck.
 
-### Remaining Work
-- **Track 2 (SIL):** Temperature annealing in training loop + Bifurcated Grammar dataset
-- **Validation:** Full benchmark run of `benchmarks.amig.toml` to confirm A-MIG's loss advantage
+1.  **Modify `sil_module.py`:** Ensure the Gumbel-Softmax sampling is correctly implemented and differentiable.
+2.  **Configuration (8-Layer Model):**
+    * **Layers 0-3:** Standard Dense Attention (Context Gathering).
+    * **Layer 4 (The Logic Bottleneck):** Replace standard attention with the SIL module. Set $K=4$ (number of latent rules).
+    * **Layers 5-7:** Standard Dense Attention (Decoding).
+3.  **Temperature Annealing:** The training loop must decay the Gumbel temperature ($\tau$) from $1.0$ to $0.1$ over the first 500 steps to force hard discretization.
 
-This directive transitions the project from trying to build a better engine for *everything*, to building an insurmountable engine for *specific, high-value edge cases*.
+### Phase 2: Adversarial Dataset Generation (Bifurcated Algorithmic)
+We need a synthetic dataset that demands strict rule adherence.
+
+1.  **Task A (Reverse):**
+    * *Prompt:* `[TASK_REV] seq: A B C D -> ans:`
+    * *Target:* `D C B A`
+2.  **Task B (Sort):**
+    * *Prompt:* `[TASK_SRT] seq: D A C B -> ans:`
+    * *Target:* `A B C D`
+3.  **The Dataset:** Generate 100,000 random sequences (length 4-8). Label 50% with `[TASK_REV]` and 50% with `[TASK_SRT]`.
+
+### Phase 3: The Benchmark Protocol
+1.  **Baseline:** Train a standard small Transformer (or Mamba2) on the Bifurcated dataset.
+2.  **Challenger:** Train the SIL model on the Bifurcated dataset.
+3.  **Evaluation Metric: "Hallucination Rate"**
+    * During validation, check for *rule blending*. If the prompt is `[TASK_REV] c a b` and the output is `b c a` (partially sorted, partially reversed), log this as a hallucination.
+4.  **Success Criteria:**
+    * The SIL architecture must demonstrate a $0\%$ (or near-zero) rule-blending hallucination rate due to its discrete bottleneck, outperforming the continuous baseline.
+
+---
+
+## Implementation Roadmap for the Engineering Agent
+
+To execute this research, instruct your coding agent to perform the following steps sequentially:
+
+1.  **Dataset Construction:**
+    * Write `scripts/generate_poisoned_tinystories.py` (Track 1).
+    * Write `scripts/generate_bifurcated_algo.py` (Track 2).
+2.  **Architecture Validation:**
+    * Update `mig_module.py` to support `layer_keep_ratios`.
+    * Update `sil_module.py` to ensure temperature annealing is connected to the training loop.
+3.  **Benchmarking Execution:**
+    * Run Track 1 (A-MIG vs. Mamba2) on the poisoned dataset. Collect loss and speed metrics.
+    * Run Track 2 (SIL vs. Standard Transformer) on the bifurcated dataset. Collect the hallucination rate metric.
