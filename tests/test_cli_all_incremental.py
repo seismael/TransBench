@@ -102,10 +102,10 @@ def test_benchmark_all_is_incremental_by_default(tmp_path, monkeypatch):
 
     # First run should generate 3 stable reports.
     assert cli.main(base_args) == 0
-    assert sorted(calls) == ["asr", "gqa", "lstm", "mhla", "mig", "rnn", "sil"]
+    assert sorted(calls) == ["asr", "gqa", "mhla", "mig", "sil"]
 
     files1 = sorted(p.name for p in reports_dir.glob("*.json") if p.name != "manifest.json")
-    assert len(files1) == 7
+    assert len(files1) == 5
 
     # Second run should skip all (no new benchmark calls) and keep file count stable.
     calls.clear()
@@ -154,7 +154,7 @@ def test_benchmark_all_replace_regenerates_all(tmp_path, monkeypatch):
     assert cli.main(args) == 0
 
     reports = [p for p in reports_dir.glob("*.json") if p.name != "manifest.json"]
-    assert len(reports) == 7
+    assert len(reports) == 5
 
     before_ids = {}
     for p in reports:

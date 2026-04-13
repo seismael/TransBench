@@ -13,7 +13,7 @@ class ASRAttentionMixin(nn.Module):
     Enforces that the attention output is invariant to input perturbations
     using a **cosine-similarity** consistency loss (scale-invariant).
 
-    Key design choices (v2):
+    Design:
     - Cosine loss instead of MSE — avoids the magnitude-collapse problem
       where small perturbations produce near-zero MSE.
     - noise_std=0.3 — perturbation must be meaningful relative to signal.

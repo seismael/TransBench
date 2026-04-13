@@ -149,7 +149,7 @@ src/transbench/
     mig_module.py           A-MIG: per-layer Top-K gating (Track 1)
     sil_module.py           SIL: Gumbel-Softmax discrete rule selection (Track 2)
     asr_module.py           ASR: adversarial stability regularization
-    mixin_modules.py        GQA, MHLA, Mamba2, RWKV6, RetNet, RNN, LSTM mixins
+    mixin_modules.py        GQA, MHLA, Mamba2, RWKV6, RetNet mixins
     archi_modules.py        ArchiTransformerStack (model assembly)
     ffn_modules.py          Feed-forward networks
     positionnal_modules.py  Positional embeddings
@@ -174,8 +174,6 @@ tests/                      pytest suite
 | Stochastic Induction Layer | `sil` | Gumbel-Softmax discrete rule selection |
 | Adversarial Stability Reg. | `asr` | Noise-injection invariance regularization |
 | Multi-Head Latent Attention | `mhla` | DeepSeek-V2 style compressed KV |
-| Vanilla RNN | `rnn` | Recurrent baseline |
-| LSTM | `lstm` | Long Short-Term Memory baseline |
 
 **Optional (requires `[fla]`, Linux + CUDA):**
 

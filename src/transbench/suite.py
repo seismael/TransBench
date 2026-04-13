@@ -62,6 +62,8 @@ def load_suite_toml(path: Path) -> list[SuiteEntry]:
             asr_noise_std=float(b.get("asr_noise_std", b.get("noise_std", 0.3))),
             asr_lambda=float(b.get("asr_lambda", b.get("lambda_asr", 0.1))),
             sil_lambda=float(b.get("sil_lambda", b.get("lambda_sil", 0.01))),
+            aux_warmup_steps=int(b.get("aux_warmup_steps", 0)),
+            sil_temperature_final=float(b["sil_temperature_final"]) if "sil_temperature_final" in b else None,
         )
 
         meta = RunMeta(

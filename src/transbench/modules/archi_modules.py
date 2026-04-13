@@ -2,33 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torch import Tensor
 from copy import deepcopy
 
-def count_parameters(stack):
-    total_parameters = sum(p.numel() for p in stack.parameters())
-    
-    embedding_parameters = sum(p.numel() for p in stack.embedding_module.parameters())
-    
-    try:
-        ffn_parameters = sum(p.numel() for layer in stack.stacked_mixin_block.layers for p in layer.ffn_module.parameters())
-    except:
-        ffn_parameters = 0
-    
-    try:
-        mixin_parameters = sum(p.numel() for layer in stack.stacked_mixin_block.layers for p in layer.mixin_module.parameters())
-    except:
-        mixin_parameters = 0
-    
-    
-    lm_head_parameters = sum(p.numel() for p in stack.lm_head_module.parameters())
-    
-    print(f"Total parameters: {total_parameters:,}")
-    print(f"Embedding parameters: {embedding_parameters:,}")
-    print(f"Mixin parameters: {mixin_parameters:,}")
-    print(f"FFN parameters: {ffn_parameters:,}")
-    print(f"LM Head parameters: {lm_head_parameters:,}")
-    
+
 class RMSNorm(nn.Module):
     def __init__(self, hidden_size, eps=1e-6):
         super().__init__()

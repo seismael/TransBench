@@ -55,6 +55,8 @@ class BenchmarkConfig:
     mig_layer_keep_ratios: tuple[float, ...] | None = None
     poison_ratio: float = 0.85
     sil_lambda: float = 0.0
+    aux_warmup_steps: int = 0
+    sil_temperature_final: float | None = None
 
 
 def _collect_mig_aux_loss(model: torch.nn.Module) -> torch.Tensor | None:
@@ -115,6 +117,33 @@ def _collect_sil_aux_loss(model: torch.nn.Module) -> torch.Tensor | None:
     return torch.stack(terms).mean()
 
 
+def _collect_gate_means(model: torch.nn.Module) -> dict[str, float]:
+    """Collect detached gate-mean values from MIG and SIL modules."""
+    means: dict[str, float] = {}
+    mig_vals: list[float] = []
+    sil_vals: list[float] = []
+    for module in model.modules():
+        gm = getattr(module, "_last_gate_mean", None)
+        if gm is not None and isinstance(gm, torch.Tensor):
+            if type(module).__name__ == "MIGAttention":
+                mig_vals.append(float(gm))
+            elif type(module).__name__ == "StochasticInductionMixin":
+                sil_vals.append(float(gm))
+    if mig_vals:
+        means["mig_gate_mean"] = sum(mig_vals) / len(mig_vals)
+    if sil_vals:
+        means["sil_gate_mean"] = sum(sil_vals) / len(sil_vals)
+    return means
+
+
+def _set_sil_temperature(model: torch.nn.Module, temperature: float) -> None:
+    """Set temperature on all SIL modules in the model."""
+    for module in model.modules():
+        fn = getattr(module, "set_temperature", None)
+        if callable(fn) and type(module).__name__ == "StochasticInductionMixin":
+            fn(temperature)
+
+
 def _stable_seed(dataset: str, seed: int | None) -> int:
     if seed is not None:
         return int(seed)
@@ -171,10 +200,6 @@ def _build_model(cfg: BenchmarkConfig) -> torch.nn.Module:
             num_attention_heads=cfg.num_heads,
             num_key_value_heads=cfg.num_kv_heads,
         )
-    elif arch == "rnn":
-        mixin_module = mixins.RNNMixin(hidden_size=cfg.hidden_size)
-    elif arch == "lstm":
-        mixin_module = mixins.LSTMMixin(hidden_size=cfg.hidden_size)
     elif arch == "mamba2":
         mixin_module = mixins.Mamba2Mixin(
             hidden_size=cfg.hidden_size,
@@ -422,10 +447,31 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
     asr_aux_loss_series: list[float] = []
     sil_aux_loss_series: list[float] = []
     total_loss_series: list[float] = []
+    mig_gate_series: list[float] = []
+    sil_gate_series: list[float] = []
 
     mig_lambda = float(getattr(cfg, "mig_lambda", 0.0))
     asr_lambda = float(getattr(cfg, "asr_lambda", 0.0))
     sil_lambda = float(getattr(cfg, "sil_lambda", 0.0))
+    aux_warmup_steps = max(0, int(getattr(cfg, "aux_warmup_steps", 0)))
+
+    sil_temp_init = float(getattr(cfg, "sil_temperature", 0.5))
+    sil_temp_final_raw = getattr(cfg, "sil_temperature_final", None)
+    sil_temp_final = float(sil_temp_final_raw) if sil_temp_final_raw is not None else None
+
+    def aux_scale_at(step: int) -> float:
+        """Linear ramp from 0→1 over aux_warmup_steps."""
+        if aux_warmup_steps <= 0:
+            return 1.0
+        return min(1.0, float(step) / float(aux_warmup_steps))
+
+    def sil_temp_at(step: int) -> float:
+        """Linear anneal from sil_temp_init → sil_temp_final over training."""
+        if sil_temp_final is None:
+            return sil_temp_init
+        total = float(max(1, warmup_steps + train_steps))
+        progress = min(1.0, float(step) / total)
+        return sil_temp_init + (sil_temp_final - sil_temp_init) * progress
 
     global_step = 0
     for _ in range(warmup_steps):
@@ -434,13 +480,15 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
             input_ids = torch.from_numpy(ids_np).to(device=device, dtype=torch.long)
         lr = lr_at(global_step)
         set_lr(lr)
+        aux_scale = aux_scale_at(global_step)
+        _set_sil_temperature(model, sil_temp_at(global_step))
         loss_ce = model(input_ids, return_loss=True)
         mig_aux = _collect_mig_aux_loss(model) if mig_lambda > 0.0 else None
-        mig_aux_scaled = mig_aux * mig_lambda if mig_aux is not None else None
+        mig_aux_scaled = mig_aux * mig_lambda * aux_scale if mig_aux is not None else None
         asr_aux = _collect_asr_aux_loss(model) if asr_lambda > 0.0 else None
-        asr_aux_scaled = asr_aux * asr_lambda if asr_aux is not None else None
+        asr_aux_scaled = asr_aux * asr_lambda * aux_scale if asr_aux is not None else None
         sil_aux = _collect_sil_aux_loss(model) if sil_lambda > 0.0 else None
-        sil_aux_scaled = sil_aux * sil_lambda if sil_aux is not None else None
+        sil_aux_scaled = sil_aux * sil_lambda * aux_scale if sil_aux is not None else None
 
         loss_total = loss_ce
         if mig_aux_scaled is not None:
@@ -465,6 +513,11 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
             sil_aux_loss_series.append(float(sil_aux_scaled.detach().cpu()))
         if mig_aux_scaled is not None or asr_aux_scaled is not None or sil_aux_scaled is not None:
             total_loss_series.append(float(loss_total.detach().cpu()))
+        gate_means = _collect_gate_means(model)
+        if "mig_gate_mean" in gate_means:
+            mig_gate_series.append(gate_means["mig_gate_mean"])
+        if "sil_gate_mean" in gate_means:
+            sil_gate_series.append(gate_means["sil_gate_mean"])
         global_step += 1
 
     if device.type == "cuda":
@@ -520,13 +573,15 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
             input_ids = torch.from_numpy(ids_np).to(device=device, dtype=torch.long)
         lr = lr_at(global_step)
         set_lr(lr)
+        aux_scale = aux_scale_at(global_step)
+        _set_sil_temperature(model, sil_temp_at(global_step))
         loss_ce = model(input_ids, return_loss=True)
         mig_aux = _collect_mig_aux_loss(model) if mig_lambda > 0.0 else None
-        mig_aux_scaled = mig_aux * mig_lambda if mig_aux is not None else None
+        mig_aux_scaled = mig_aux * mig_lambda * aux_scale if mig_aux is not None else None
         asr_aux = _collect_asr_aux_loss(model) if asr_lambda > 0.0 else None
-        asr_aux_scaled = asr_aux * asr_lambda if asr_aux is not None else None
+        asr_aux_scaled = asr_aux * asr_lambda * aux_scale if asr_aux is not None else None
         sil_aux = _collect_sil_aux_loss(model) if sil_lambda > 0.0 else None
-        sil_aux_scaled = sil_aux * sil_lambda if sil_aux is not None else None
+        sil_aux_scaled = sil_aux * sil_lambda * aux_scale if sil_aux is not None else None
 
         loss_total = loss_ce
         if mig_aux_scaled is not None:
@@ -554,6 +609,11 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
             sil_aux_loss_series.append(float(sil_aux_scaled.detach().cpu()))
         if mig_aux_scaled is not None or asr_aux_scaled is not None or sil_aux_scaled is not None:
             total_loss_series.append(float(loss_total.detach().cpu()))
+        gate_means = _collect_gate_means(model)
+        if "mig_gate_mean" in gate_means:
+            mig_gate_series.append(gate_means["mig_gate_mean"])
+        if "sil_gate_mean" in gate_means:
+            sil_gate_series.append(gate_means["sil_gate_mean"])
         global_step += 1
         step_idx = global_step - warmup_steps
         if step_idx <= 1 or step_idx == train_steps or (progress_every > 0 and step_idx % progress_every == 0):
@@ -620,6 +680,8 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
             "asr_noise_std": float(getattr(cfg, "asr_noise_std", 0.05)),
             "asr_lambda": float(getattr(cfg, "asr_lambda", 0.0)),
             "sil_lambda": float(getattr(cfg, "sil_lambda", 0.0)),
+            "aux_warmup_steps": int(getattr(cfg, "aux_warmup_steps", 0)),
+            "sil_temperature_final": sil_temp_final,
         },
         metrics={
             "forward_ms_mean": float(np.mean(fwd_times) * 1000.0),
@@ -637,6 +699,8 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
             "sil_aux_loss_mean": float(np.mean(sil_aux_loss_series)) if sil_aux_loss_series else None,
             "total_loss_mean": float(np.mean(total_loss_series)) if total_loss_series else None,
             "total_loss_series": total_loss_series if total_loss_series else None,
+            "mig_gate_series": mig_gate_series if mig_gate_series else None,
+            "sil_gate_series": sil_gate_series if sil_gate_series else None,
             "peak_mem_mb": peak_mem_mb,
         },
     )

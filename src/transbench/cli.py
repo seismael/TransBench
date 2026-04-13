@@ -45,7 +45,7 @@ def _build_parser() -> argparse.ArgumentParser:
     bench.add_argument(
         "--arch",
         default="gqa",
-        help="Architecture: gqa|mig|sil|asr|mhla|rnn|lstm|mamba2|rwkv6|retnet",
+        help="Architecture: gqa|mig|sil|asr|mhla|mamba2|rwkv6|retnet",
     )
     bench.add_argument("--all", action="store_true", help="Run all supported architectures")
     bench.add_argument("--num-layers", type=int, default=8)
@@ -392,7 +392,7 @@ def _cmd_benchmark(args: argparse.Namespace) -> int:
 
     if args.all:
         # Always-available architectures (no optional deps)
-        archs = ["gqa", "mig", "sil", "asr", "mhla", "rnn", "lstm"]
+        archs = ["gqa", "mig", "sil", "asr", "mhla"]
         # Optional mixins: only include if dependency is installed and the run
         # is targeting CUDA (these kernels typically don't support pure CPU).
         wants_cuda = args.device is None or str(args.device).startswith("cuda")

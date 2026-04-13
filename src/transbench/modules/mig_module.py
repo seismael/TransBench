@@ -74,7 +74,7 @@ class MIGAttention(nn.Module):
             final.bias.data.fill_(-2.0)
             final._skip_global_init = True  # type: ignore[attr-defined]
         else:
-            # Simple scalar gate (original v3 behaviour).
+            # Simple scalar gate.
             self.router = nn.Linear(hidden_size, 1, bias=True)
 
         self.attention = GroupedQuerySelfAttentionMixin(
@@ -90,6 +90,7 @@ class MIGAttention(nn.Module):
         self.layer_id = 0
 
         self._last_aux_loss: torch.Tensor = torch.tensor(0.0)
+        self._last_gate_mean: torch.Tensor | None = None
 
         # Silence unused kwargs.
         _ = capacity
@@ -137,6 +138,7 @@ class MIGAttention(nn.Module):
             # MLP per-head gate: each head gets its own token-importance score.
             gate = torch.sigmoid(self.router(x))           # [B, N, num_heads]
             self._last_aux_loss = gate.mean()
+            self._last_gate_mean = gate.mean().detach()
 
             x_heads = x.view(B, N, self.num_attention_heads, self.head_dim)
             x_gated = (x_heads * gate.unsqueeze(-1)).reshape(B, N, C)
@@ -148,6 +150,7 @@ class MIGAttention(nn.Module):
             # Simple scalar gate: one importance score per token.
             gate = torch.sigmoid(self.router(x))           # [B, N, 1]
             self._last_aux_loss = gate.mean()
+            self._last_gate_mean = gate.mean().detach()
             x_gated = x * gate
 
             # A-MIG: Hard Top-K based on scalar gate scores.

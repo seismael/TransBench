@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from torch import Tensor
-from einops import rearrange, einsum, repeat
+from einops import repeat
 
 # Compatibility shim for some third-party libraries that expect `torch.<backend>.device`.
 # Newer PyTorch versions expose `torch.cpu` as a module without a `device` attribute,
@@ -98,39 +98,7 @@ def _require_fla() -> tuple[object, object, object]:
     return MultiScaleRetention, Mamba2, RWKV6Attention
 
 from transbench.modules.archi_modules import RMSNorm
-    
-class RNNMixin(nn.Module):
-    def __init__(self, hidden_size, num_attention_heads=None, num_key_value_heads=None):
-        super().__init__()
-        self.rnn = nn.RNN(
-            hidden_size,
-            hidden_size,
-            num_layers=1,
-            dropout=0.0,
-            bidirectional=False,
-            batch_first=True,
-        )
-        
-    def forward(self, x):
-        output, _ = self.rnn(x)
-        return output
 
-class LSTMMixin(nn.Module):
-    def __init__(self, hidden_size, num_attention_heads=None, num_key_value_heads=None):
-        super().__init__()
-        self.lstm = nn.LSTM(
-            hidden_size,
-            hidden_size,
-            num_layers=1,
-            dropout=0.0,
-            bidirectional=False,
-            batch_first=True,
-        )
-        
-    def forward(self, x):
-        output, _ = self.lstm(x)
-        return output
-    
 class MultiScaleRetentionMixin(nn.Module):
     def __init__(self, hidden_size, num_attention_heads, num_key_value_heads=None, *, use_fla: bool = True):
         super().__init__()

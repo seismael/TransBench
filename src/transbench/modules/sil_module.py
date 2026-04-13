@@ -8,18 +8,18 @@ from transbench.modules.mixin_modules import GroupedQuerySelfAttentionMixin
 
 
 class StochasticInductionMixin(nn.Module):
-    """Stochastic Induction Layer (SIL) mixin — v2.
+    """Stochastic Induction Layer (SIL) mixin.
 
     SIL augments a standard token-mixing path (attention) with a parallel
     stochastic "rule" path.  The rule path samples a discrete latent (via
     Gumbel-Softmax) per token and decodes it back into hidden space.
 
-    Key improvements (v2):
+    Design:
     - **Learned gate** controls how much of the induced signal is injected.
-      Gate is initialized near zero (bias = −3 → σ ≈ 0.05) so early
-      training is dominated by the stable attention path.
+      Gate is initialized to σ(−1) ≈ 0.27 with input-dependent weights so
+      the induction path receives meaningful gradients from the start.
     - **Soft Gumbel-Softmax** during training (hard_train=False) reduces
-      gradient variance across the 64 latent categories.
+      gradient variance across the latent categories.
     - **Lower default temperature** (0.5) sharpens rule selection sooner.
 
     Interface contract: `forward(x) -> (B, S, H)`.
@@ -63,12 +63,13 @@ class StochasticInductionMixin(nn.Module):
         # archi_modules.init_weight does not reset the bias.
         self.induction_gate = nn.Linear(hidden_size, 1)
         self.induction_gate._skip_global_init = True  # type: ignore[attr-defined]
-        nn.init.zeros_(self.induction_gate.weight)
-        nn.init.constant_(self.induction_gate.bias, -3.0)
+        nn.init.normal_(self.induction_gate.weight, mean=0.0, std=0.02)
+        nn.init.constant_(self.induction_gate.bias, -1.0)
 
         # Runtime state set by each forward pass.
         self._last_rule_entropy: torch.Tensor | None = None
         self._last_sil_loss: torch.Tensor | None = None
+        self._last_gate_mean: torch.Tensor | None = None
 
     def set_temperature(self, temperature: float) -> None:
         self.temperature = float(temperature)
@@ -117,7 +118,8 @@ class StochasticInductionMixin(nn.Module):
         rule_embedding = self.rule_decoder(z)  # (B, S, H)
         induced = self.induction_norm(rule_embedding)
 
-        # Learned scalar gate: starts near zero, grows as rules become useful.
+        # Learned scalar gate: starts moderate, adapts as rules become useful.
         alpha = torch.sigmoid(self.induction_gate(x))  # (B, S, 1) broadcasts
+        self._last_gate_mean = alpha.mean().detach()
 
         return attn_out + alpha * induced

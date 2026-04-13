@@ -8,7 +8,7 @@ from transbench.suite import load_suite_toml, run_suite
 
 def test_suite_runs_from_example_toml(tmp_path: Path):
     repo_root = Path(__file__).resolve().parents[1]
-    suite = repo_root / "benchmarks.example.toml"
+    suite = repo_root / "benchmarks" / "benchmarks.example.toml"
 
     reports_dir = tmp_path / "reports"
     reports_dir.mkdir(parents=True, exist_ok=True)
