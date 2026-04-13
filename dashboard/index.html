@@ -26,6 +26,16 @@
           </div>
 
           <div class="control-group">
+            <label>Device</label>
+            <div class="seg-group" id="deviceToggle">
+              <button class="seg-btn is-active" data-value="all" type="button">All</button>
+              <button class="seg-btn" data-value="cpu" type="button">CPU</button>
+              <button class="seg-btn" data-value="cuda" type="button">CUDA</button>
+            </div>
+            <small class="muted">Filter runs by compute device.</small>
+          </div>
+
+          <div class="control-group">
             <label>Aggregation</label>
             <select id="aggMode">
               <option value="latest" selected>Latest Run</option>

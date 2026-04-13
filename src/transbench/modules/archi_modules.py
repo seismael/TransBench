@@ -188,7 +188,7 @@ class StackedMixinForCausalLM(nn.Module):
             shift_logits = logits[..., :-1, :].contiguous()
             shift_labels = input_ids[..., 1:].contiguous()
             
-            shift_logits = shift_logits.view(-1, self.vocab_size)
+            shift_logits = shift_logits.view(-1, self.vocab_size).float()
             shift_labels = shift_labels.view(-1)
             
             shift_labels = shift_labels.to(shift_logits.device)

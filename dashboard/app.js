@@ -10,6 +10,7 @@ const SHELL = document.querySelector(".app-shell");
 const UI = {
   refresh: document.getElementById("refresh"),
   dataset: document.getElementById("dataset"),
+  deviceToggle: document.getElementById("deviceToggle"),
   aggMode: document.getElementById("aggMode"),
   baselineArch: document.getElementById("baselineArch"),
   seriesMetric: document.getElementById("seriesMetric"),
@@ -188,11 +189,20 @@ function selectedDataset() {
   return UI.dataset?.value || "all";
 }
 
+function selectedDevice() {
+  const active = UI.deviceToggle?.querySelector(".seg-btn.is-active");
+  return active?.dataset.value || "all";
+}
+
 function filteredReports() {
   const reports = getReports();
   const ds = selectedDataset();
-  if (!ds || ds === "all") return reports;
-  return reports.filter((r) => (r.dataset || "unknown") === ds);
+  const dev = selectedDevice();
+  return reports.filter((r) => {
+    if (ds && ds !== "all" && (r.dataset || "unknown") !== ds) return false;
+    if (dev && dev !== "all" && (r.device || "cpu") !== dev) return false;
+    return true;
+  });
 }
 
 function selectedArchs() {
@@ -689,6 +699,7 @@ async function renderLine(picked) {
 
 function updateSubtitle() {
   const ds = selectedDataset();
+  const dev = selectedDevice();
   const mode = UI.aggMode.value;
   const baseline = UI.baselineArch.value;
   const modeTxt = mode === "latest" ? "Latest" : "Best (min loss)";
@@ -696,7 +707,8 @@ function updateSubtitle() {
   const total = getReports().length;
   const shown = filteredReports().length;
   const countTxt = total > 0 ? ` • Reports: ${shown}/${total}` : "";
-  UI.tableSubtitle.textContent = `Dataset: ${ds}${countTxt} • Mode: ${modeTxt}${baseline ? ` • Baseline: ${baseline}` : ""}`;
+  const devTxt = dev && dev !== "all" ? ` • Device: ${dev.toUpperCase()}` : "";
+  UI.tableSubtitle.textContent = `Dataset: ${ds}${devTxt}${countTxt} • Mode: ${modeTxt}${baseline ? ` • Baseline: ${baseline}` : ""}`;
 }
 
 async function updateAll() {
@@ -725,6 +737,18 @@ function wireEvents() {
     renderArchList();
     updateAll().catch((e) => alert(String(e)));
   });
+
+  // Device toggle (segmented buttons)
+  if (UI.deviceToggle) {
+    for (const btn of UI.deviceToggle.querySelectorAll(".seg-btn")) {
+      btn.addEventListener("click", () => {
+        UI.deviceToggle.querySelectorAll(".seg-btn").forEach((b) => b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        renderArchList();
+        updateAll().catch((e) => alert(String(e)));
+      });
+    }
+  }
 
   UI.aggMode?.addEventListener("change", () => {
     updateAll().catch((e) => alert(String(e)));

@@ -1,0 +1,420 @@
+# CUDA baseline benchmark suite
+# All 10 architectures × 2 datasets (synthetic + tinystories)
+# Extended configs for detailed convergence behavior (500 steps, seq_len=128, batch=4)
+# Uses float32 (MX150 sm_61 has no tensor cores; fp16 offers no speedup)
+
+# ─────────────────────────────────────────────────────────────────
+# GQA – Grouped Query Attention
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cuda-gqa-synthetic"
+arch      = "gqa"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cuda-gqa-tinystories"
+arch      = "gqa"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# MHLA – Multi-Head Latent Attention
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cuda-mhla-synthetic"
+arch      = "mhla"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cuda-mhla-tinystories"
+arch      = "mhla"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# RNN – Simple Recurrent
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cuda-rnn-synthetic"
+arch      = "rnn"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cuda-rnn-tinystories"
+arch      = "rnn"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# LSTM – Long Short-Term Memory
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cuda-lstm-synthetic"
+arch      = "lstm"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cuda-lstm-tinystories"
+arch      = "lstm"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# Mamba2 (PyTorch fallback – no FLA)
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cuda-mamba2-synthetic"
+arch      = "mamba2"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cuda-mamba2-tinystories"
+arch      = "mamba2"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# RWKV6 (PyTorch fallback – no FLA)
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cuda-rwkv6-synthetic"
+arch      = "rwkv6"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cuda-rwkv6-tinystories"
+arch      = "rwkv6"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# RetNet / Multi-Scale Retention (PyTorch fallback – no FLA)
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cuda-retnet-synthetic"
+arch      = "retnet"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cuda-retnet-tinystories"
+arch      = "retnet"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+tags        = ["cuda", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# MIG – Mutual Information Gating
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cuda-mig-synthetic"
+arch      = "mig"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+mig_keep_ratio = 0.7
+mig_gate_dim   = 64
+mig_lambda     = 0.01
+tags        = ["cuda", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cuda-mig-tinystories"
+arch      = "mig"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+mig_keep_ratio = 0.7
+mig_gate_dim   = 64
+mig_lambda     = 0.01
+tags        = ["cuda", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# SIL – Stochastic Induction Layer
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cuda-sil-synthetic"
+arch      = "sil"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+sil_num_rules   = 32
+sil_temperature = 0.5
+sil_lambda      = 0.01
+tags        = ["cuda", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cuda-sil-tinystories"
+arch      = "sil"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+sil_num_rules   = 32
+sil_temperature = 0.5
+sil_lambda      = 0.01
+tags        = ["cuda", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# ASR – Asymmetric Singular Rank
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cuda-asr-synthetic"
+arch      = "asr"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+asr_noise_std = 0.3
+asr_lambda    = 0.1
+tags        = ["cuda", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cuda-asr-tinystories"
+arch      = "asr"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 128
+batch_size  = 4
+warmup      = 10
+steps       = 500
+lr          = 3e-4
+device      = "cuda"
+dtype       = "float32"
+asr_noise_std = 0.3
+asr_lambda    = 0.1
+tags        = ["cuda", "tinystories", "baseline"]

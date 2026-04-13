@@ -1,0 +1,419 @@
+# CPU baseline benchmark suite
+# All 10 architectures × 2 datasets (synthetic + tinystories)
+# Small, fast configs for quick comparable runs (~30 steps each)
+
+# ─────────────────────────────────────────────────────────────────
+# GQA – Grouped Query Attention
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cpu-gqa-synthetic"
+arch      = "gqa"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cpu-gqa-tinystories"
+arch      = "gqa"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# MHLA – Multi-Head Latent Attention
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cpu-mhla-synthetic"
+arch      = "mhla"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cpu-mhla-tinystories"
+arch      = "mhla"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# RNN – Simple Recurrent
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cpu-rnn-synthetic"
+arch      = "rnn"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cpu-rnn-tinystories"
+arch      = "rnn"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# LSTM – Long Short-Term Memory
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cpu-lstm-synthetic"
+arch      = "lstm"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cpu-lstm-tinystories"
+arch      = "lstm"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# Mamba2 (PyTorch fallback – no FLA)
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cpu-mamba2-synthetic"
+arch      = "mamba2"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cpu-mamba2-tinystories"
+arch      = "mamba2"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# RWKV6 (PyTorch fallback – no FLA)
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cpu-rwkv6-synthetic"
+arch      = "rwkv6"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cpu-rwkv6-tinystories"
+arch      = "rwkv6"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# RetNet / Multi-Scale Retention (PyTorch fallback – no FLA)
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cpu-retnet-synthetic"
+arch      = "retnet"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cpu-retnet-tinystories"
+arch      = "retnet"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+tags        = ["cpu", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# MIG – Mutual Information Gating
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cpu-mig-synthetic"
+arch      = "mig"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+mig_keep_ratio = 0.7
+mig_gate_dim   = 64
+mig_lambda     = 0.01
+tags        = ["cpu", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cpu-mig-tinystories"
+arch      = "mig"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+mig_keep_ratio = 0.7
+mig_gate_dim   = 64
+mig_lambda     = 0.01
+tags        = ["cpu", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# SIL – Stochastic Induction Layer
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cpu-sil-synthetic"
+arch      = "sil"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+sil_num_rules   = 32
+sil_temperature = 0.5
+sil_lambda      = 0.01
+tags        = ["cpu", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cpu-sil-tinystories"
+arch      = "sil"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+sil_num_rules   = 32
+sil_temperature = 0.5
+sil_lambda      = 0.01
+tags        = ["cpu", "tinystories", "baseline"]
+
+# ─────────────────────────────────────────────────────────────────
+# ASR – Asymmetric Singular Rank
+# ─────────────────────────────────────────────────────────────────
+[[bench]]
+run_name  = "cpu-asr-synthetic"
+arch      = "asr"
+dataset   = "synthetic"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+asr_noise_std = 0.3
+asr_lambda    = 0.1
+tags        = ["cpu", "synthetic", "baseline"]
+
+[[bench]]
+run_name  = "cpu-asr-tinystories"
+arch      = "asr"
+dataset   = "tinystories"
+num_layers  = 4
+hidden_size = 128
+ffn_mult    = 2.0
+num_heads   = 4
+num_kv_heads = 2
+vocab_size  = 4096
+seq_len     = 64
+batch_size  = 2
+warmup      = 3
+steps       = 30
+lr          = 3e-4
+device      = "cpu"
+dtype       = "float32"
+asr_noise_std = 0.3
+asr_lambda    = 0.1
+tags        = ["cpu", "tinystories", "baseline"]

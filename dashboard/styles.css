@@ -216,6 +216,40 @@ code {
 
 .push-down { margin-top: auto; }
 
+/* Segmented toggle group */
+.seg-group {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.seg-btn {
+  flex: 1;
+  padding: 7px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
+  background: var(--panel);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.seg-btn:not(:last-child) {
+  border-right: 1px solid var(--border);
+}
+
+.seg-btn:hover {
+  background: var(--panel-2);
+}
+
+.seg-btn.is-active {
+  background: var(--primary);
+  color: #fff;
+}
+
 .muted {
   color: var(--text-muted);
   font-size: 12px;
