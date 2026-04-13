@@ -255,7 +255,7 @@ def _cmd_benchmark(args: argparse.Namespace) -> int:
         elif (cfg.arch or "").lower() == "sil":
             rules = int(getattr(cfg, "sil_num_latent_rules", 64))
             temp = float(getattr(cfg, "sil_temperature", 1.0))
-            ht = bool(getattr(cfg, "sil_hard_train", True))
+            ht = bool(getattr(cfg, "sil_hard_train", False))
             he = bool(getattr(cfg, "sil_hard_eval", True))
             temp_s = (f"{temp:.6g}").replace(".", "p").replace("-", "m")
             extra = f"_silR{rules}_T{temp_s}_ht{int(ht)}_he{int(he)}"

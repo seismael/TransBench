@@ -248,7 +248,7 @@ def _build_model(cfg: BenchmarkConfig) -> torch.nn.Module:
             num_key_value_heads=cfg.num_kv_heads,
             num_latent_rules=int(getattr(cfg, "sil_num_latent_rules", 64)),
             temperature=float(getattr(cfg, "sil_temperature", 1.0)),
-            hard_train=bool(getattr(cfg, "sil_hard_train", True)),
+            hard_train=bool(getattr(cfg, "sil_hard_train", False)),
             hard_eval=bool(getattr(cfg, "sil_hard_eval", True)),
         )
     elif arch == "asr":
@@ -675,7 +675,7 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
             "mig_keep_ratio": float(getattr(cfg, "mig_keep_ratio", 0.7)),
             "sil_num_latent_rules": int(getattr(cfg, "sil_num_latent_rules", 64)),
             "sil_temperature": float(getattr(cfg, "sil_temperature", 1.0)),
-            "sil_hard_train": bool(getattr(cfg, "sil_hard_train", True)),
+            "sil_hard_train": bool(getattr(cfg, "sil_hard_train", False)),
             "sil_hard_eval": bool(getattr(cfg, "sil_hard_eval", True)),
             "asr_noise_std": float(getattr(cfg, "asr_noise_std", 0.05)),
             "asr_lambda": float(getattr(cfg, "asr_lambda", 0.0)),
