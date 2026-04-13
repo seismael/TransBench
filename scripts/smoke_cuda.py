@@ -7,7 +7,7 @@ warnings.filterwarnings("ignore")
 sys.argv = [
     "transbench", "benchmark",
     "--arch", "gqa",
-    "--dataset", "synthetic",
+    "--dataset", "sparse_signal",
     "--num-layers", "2",
     "--hidden-size", "64",
     "--num-heads", "2",

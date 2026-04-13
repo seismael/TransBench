@@ -64,7 +64,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--dataset",
         default="tinystories",
         choices=list_dataset_ids(),
-        help="Dataset: tinystories|synthetic|zeros|ramp (default: tinystories)",
+        help="Dataset: tinystories|poisoned_needle|sparse_signal|zeros|ramp (default: tinystories)",
     )
     bench.add_argument(
         "--tokenizer-model",
@@ -101,6 +101,18 @@ def _build_parser() -> argparse.ArgumentParser:
         type=float,
         default=0.85,
         help="Poisoned Needle: fraction of center tokens to corrupt (default: 0.85)",
+    )
+    bench.add_argument(
+        "--signal-ratio",
+        type=float,
+        default=0.15,
+        help="Sparse Signal: fraction of tokens that carry learnable motif (default: 0.15)",
+    )
+    bench.add_argument(
+        "--motif-len",
+        type=int,
+        default=8,
+        help="Sparse Signal: length of the repeating motif pattern (default: 8)",
     )
 
     bench.add_argument(
@@ -242,7 +254,7 @@ def _cmd_benchmark(args: argparse.Namespace) -> int:
         dev = (cfg.device or "auto").replace(":", "-")
         dt = (cfg.dtype or "auto").replace(":", "-")
         kv = f"kv{cfg.num_kv_heads}" if cfg.num_kv_heads is not None else "kv-"
-        ds = (cfg.dataset or "synthetic").replace(":", "-")
+        ds = (cfg.dataset or "tinystories").replace(":", "-")
 
         extra = ""
         if (cfg.arch or "").lower() == "mig":
@@ -300,6 +312,8 @@ def _cmd_benchmark(args: argparse.Namespace) -> int:
             mig_keep_ratio=float(args.mig_keep_ratio),
             mig_layer_keep_ratios=_parse_layer_keep_ratios(args.mig_layer_keep_ratios),
             poison_ratio=float(args.poison_ratio),
+            signal_ratio=float(args.signal_ratio),
+            motif_len=int(args.motif_len),
             sil_num_latent_rules=int(args.sil_num_rules),
             sil_temperature=float(args.sil_temperature),
             sil_hard_train=bool(args.sil_hard_train),
@@ -358,6 +372,8 @@ def _cmd_benchmark(args: argparse.Namespace) -> int:
             mig_keep_ratio=float(args.mig_keep_ratio),
             mig_layer_keep_ratios=_parse_layer_keep_ratios(args.mig_layer_keep_ratios),
             poison_ratio=float(args.poison_ratio),
+            signal_ratio=float(args.signal_ratio),
+            motif_len=int(args.motif_len),
             sil_num_latent_rules=int(args.sil_num_rules),
             sil_temperature=float(args.sil_temperature),
             sil_hard_train=bool(args.sil_hard_train),

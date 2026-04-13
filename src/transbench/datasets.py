@@ -7,13 +7,12 @@ import numpy as np
 
 
 # NOTE: Project direction
-# The original research notebook trains on TinyStories. We keep TinyStories as the only
-# "real" dataset exposed by the CLI.
-#
-# We *also* keep a tiny set of synthetic generators for smoke tests / quick local runs.
+# TinyStories is the primary real-language dataset. Adversarial datasets
+# (poisoned_needle, sparse_signal) test structural advantages. Utility
+# generators (zeros, ramp) exist only for hardware diagnostics / smoke tests.
 
-SYNTHETIC_DATASETS: set[str] = {"synthetic", "zeros", "zero", "ramp", "arange"}
-ADVERSARIAL_DATASETS: set[str] = {"poisoned_needle"}
+DIAGNOSTIC_DATASETS: set[str] = {"zeros", "zero", "ramp", "arange"}
+ADVERSARIAL_DATASETS: set[str] = {"poisoned_needle", "sparse_signal"}
 
 
 TINY_STORIES_DATASET_ID = "roneneldan/TinyStories"
@@ -24,12 +23,12 @@ TINY_STORIES_TEXT_FIELD = "text"
 def list_dataset_ids() -> list[str]:
     """Return canonical dataset IDs supported by the CLI."""
 
-    return ["tinystories", "synthetic", "zeros", "ramp", "poisoned_needle"]
+    return ["tinystories", "poisoned_needle", "sparse_signal", "zeros", "ramp"]
 
 
 def is_supported_dataset(dataset: str) -> bool:
     d = (dataset or "").lower().strip()
-    return d == "tinystories" or d in SYNTHETIC_DATASETS or d in ADVERSARIAL_DATASETS
+    return d == "tinystories" or d in DIAGNOSTIC_DATASETS or d in ADVERSARIAL_DATASETS
 
 
 def default_cache_dir() -> Path:
@@ -103,14 +102,15 @@ def sample_input_ids(
 ) -> np.ndarray:
     """Return a (batch_size, seq_len) numpy array of token IDs.
 
-    For synthetic datasets, no dependencies are required.
+    For diagnostic datasets (zeros, ramp) and adversarial datasets (sparse_signal, poisoned_needle),
+    no external dependencies are required.
     For TinyStories, uses HF Datasets + Transformers tokenizer (optional dependencies).
     """
 
     if batch_size <= 0 or seq_len <= 0:
         raise ValueError("batch_size and seq_len must be > 0")
 
-    d = (dataset or "synthetic").lower().strip()
+    d = (dataset or "tinystories").lower().strip()
 
     if d in {"zeros", "zero"}:
         return np.zeros((batch_size, seq_len), dtype=np.int64)
@@ -119,16 +119,19 @@ def sample_input_ids(
         row = np.remainder(np.arange(seq_len, dtype=np.int64), int(vocab_size)).astype(np.int64, copy=False)
         return np.repeat(row[None, :], batch_size, axis=0)
 
-    if d == "synthetic":
-        rng = np.random.default_rng(int(seed))
-        return rng.integers(0, int(vocab_size), size=(batch_size, seq_len), dtype=np.int64)
-
     if d == "poisoned_needle":
-        # Poisoned Needle: start from synthetic random data then inject poison
+        # Poisoned Needle: start from random base data then inject poison
         # into center. Works without optional [train] deps.
         rng = np.random.default_rng(int(seed))
         base_ids = rng.integers(0, int(vocab_size), size=(batch_size, seq_len), dtype=np.int64)
         return _inject_poison(base_ids, poison_ratio=0.85, vocab_size=int(vocab_size), rng=rng)
+
+    if d == "sparse_signal":
+        rng = np.random.default_rng(int(seed))
+        return _generate_sparse_signal(
+            batch_size=batch_size, seq_len=seq_len, vocab_size=int(vocab_size),
+            signal_ratio=0.15, motif_len=8, rng=rng,
+        )
 
     if d != "tinystories":
         raise ValueError(
@@ -281,6 +284,58 @@ def _inject_poison(
     return ids
 
 
+def _generate_sparse_signal(
+    *,
+    batch_size: int,
+    seq_len: int,
+    vocab_size: int,
+    signal_ratio: float = 0.15,
+    motif_len: int = 8,
+    rng: np.random.Generator | None = None,
+) -> np.ndarray:
+    """Generate sequences with a repeating motif at evenly-spaced signal positions.
+
+    Non-signal positions are filled with uniform random tokens.  The motif is
+    deterministic for a given RNG state, so it is reproducible across calls.
+
+    Args:
+        batch_size: Number of sequences.
+        seq_len: Length of each sequence.
+        vocab_size: Upper bound for random token IDs.
+        signal_ratio: Fraction of positions that carry the motif (0, 1].
+        motif_len: Length of the repeating motif pattern.
+        rng: NumPy random generator.
+
+    Returns:
+        ``(batch_size, seq_len)`` array of token IDs.
+    """
+    if rng is None:
+        rng = np.random.default_rng()
+
+    # Generate a deterministic motif for this RNG state.
+    motif = rng.integers(0, int(vocab_size), size=int(motif_len), dtype=np.int64)
+
+    # Compute evenly-spaced signal positions.
+    n_signal = max(1, int(seq_len * float(signal_ratio)))
+    signal_positions = np.linspace(0, seq_len - 1, n_signal, dtype=np.int64)
+
+    # Fill with random noise, then place motif at signal positions.
+    ids = rng.integers(0, int(vocab_size), size=(batch_size, seq_len), dtype=np.int64)
+    for i, pos in enumerate(signal_positions):
+        ids[:, pos] = motif[i % len(motif)]
+    return ids
+
+
+def sparse_signal_positions(seq_len: int, signal_ratio: float) -> np.ndarray:
+    """Return the signal-position indices for a sparse_signal sequence.
+
+    Matches the positions used by ``_generate_sparse_signal`` so callers
+    can compute gate selectivity on known signal vs noise positions.
+    """
+    n_signal = max(1, int(seq_len * float(signal_ratio)))
+    return np.linspace(0, seq_len - 1, n_signal, dtype=np.int64)
+
+
 def make_sampler(
     dataset: str,
     *,
@@ -289,15 +344,22 @@ def make_sampler(
     seed: int = 0,
     offline: bool = False,
     poison_ratio: float = 0.85,
+    signal_ratio: float = 0.15,
+    motif_len: int = 8,
 ):
     """Create a callable sampler for datasets that benefit from caching.
 
-    Supports ``tinystories`` and ``poisoned_needle`` (TinyStories + noise).
+    Supports ``tinystories``, ``poisoned_needle``, and ``sparse_signal``.
     """
 
     d = (dataset or "").lower().strip()
-    if d not in {"tinystories", "poisoned_needle"}:
-        raise ValueError(f"make_sampler only supports 'tinystories'/'poisoned_needle' (got: {dataset})")
+    if d not in {"tinystories", "poisoned_needle", "sparse_signal"}:
+        raise ValueError(f"make_sampler only supports 'tinystories'/'poisoned_needle'/'sparse_signal' (got: {dataset})")
+
+    if d == "sparse_signal":
+        return _SparseSiganlSampler(
+            signal_ratio=float(signal_ratio), motif_len=int(motif_len), seed=int(seed),
+        )
 
     cache_dir = cache_dir or default_cache_dir()
     tok_model = (tokenizer_model or "gpt2").strip()
@@ -319,4 +381,19 @@ class _PoisonedNeedleSampler:
         ids = self._base(batch_size=batch_size, seq_len=seq_len, vocab_size=vocab_size)
         return _inject_poison(
             ids, poison_ratio=self._poison_ratio, vocab_size=int(vocab_size), rng=self._rng,
+        )
+
+
+class _SparseSiganlSampler:
+    """Generates fresh sparse_signal batches with a fixed motif across calls."""
+
+    def __init__(self, *, signal_ratio: float, motif_len: int, seed: int):
+        self._signal_ratio = float(signal_ratio)
+        self._motif_len = int(motif_len)
+        self._rng = np.random.default_rng(int(seed))
+
+    def __call__(self, *, batch_size: int, seq_len: int, vocab_size: int) -> np.ndarray:
+        return _generate_sparse_signal(
+            batch_size=batch_size, seq_len=seq_len, vocab_size=int(vocab_size),
+            signal_ratio=self._signal_ratio, motif_len=self._motif_len, rng=self._rng,
         )

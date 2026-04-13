@@ -91,6 +91,7 @@ class MIGAttention(nn.Module):
 
         self._last_aux_loss: torch.Tensor = torch.tensor(0.0)
         self._last_gate_mean: torch.Tensor | None = None
+        self._last_gate_per_token: torch.Tensor | None = None
 
         # Silence unused kwargs.
         _ = capacity
@@ -139,6 +140,7 @@ class MIGAttention(nn.Module):
             gate = torch.sigmoid(self.router(x))           # [B, N, num_heads]
             self._last_aux_loss = gate.mean()
             self._last_gate_mean = gate.mean().detach()
+            self._last_gate_per_token = gate.mean(dim=-1).detach()  # [B, N]
 
             x_heads = x.view(B, N, self.num_attention_heads, self.head_dim)
             x_gated = (x_heads * gate.unsqueeze(-1)).reshape(B, N, C)
@@ -151,6 +153,7 @@ class MIGAttention(nn.Module):
             gate = torch.sigmoid(self.router(x))           # [B, N, 1]
             self._last_aux_loss = gate.mean()
             self._last_gate_mean = gate.mean().detach()
+            self._last_gate_per_token = gate.squeeze(-1).detach()  # [B, N]
             x_gated = x * gate
 
             # A-MIG: Hard Top-K based on scalar gate scores.

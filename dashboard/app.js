@@ -153,7 +153,7 @@ const METRICS_CFG = [
 ];
 
 // Allow all datasets found in the manifest to appear in the dropdown
-const ALLOWED_DATASETS = ["tinystories", "synthetic", "zeros", "ramp", "tinystories-instruct", "wikitext"];
+const ALLOWED_DATASETS = ["tinystories", "poisoned_needle", "sparse_signal", "zeros", "ramp", "tinystories-instruct", "wikitext"];
 
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (m) => ({

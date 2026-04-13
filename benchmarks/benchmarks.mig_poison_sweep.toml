@@ -1,0 +1,291 @@
+# MIG Poisoned Needle Noise Sweep (CUDA, 2000 steps)
+# Validates MIG advantage on a second noise dataset type.
+# 12 runs: 3 architectures × 4 poison_ratio levels
+
+# ═══════════════════════════════════════════════════════════════
+#  poison_ratio = 0.50 (50% corruption — mild)
+# ═══════════════════════════════════════════════════════════════
+
+[[bench]]
+run_name = "cuda-gqa-poison50"
+arch = "gqa"
+dataset = "poisoned_needle"
+poison_ratio = 0.50
+num_layers = 6
+hidden_size = 256
+ffn_mult = 2.0
+num_heads = 8
+num_kv_heads = 4
+seq_len = 256
+batch_size = 4
+vocab_size = 4096
+warmup = 50
+steps = 2000
+lr = 3e-4
+device = "cuda"
+dtype = "float32"
+tags = ["mig-poison", "poisoned_needle", "gqa", "p50"]
+
+[[bench]]
+run_name = "cuda-mig-poison50"
+arch = "mig"
+dataset = "poisoned_needle"
+poison_ratio = 0.50
+num_layers = 6
+hidden_size = 256
+ffn_mult = 2.0
+num_heads = 8
+num_kv_heads = 4
+seq_len = 256
+batch_size = 4
+vocab_size = 4096
+warmup = 50
+steps = 2000
+lr = 3e-4
+device = "cuda"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+aux_warmup_steps = 200
+tags = ["mig-poison", "poisoned_needle", "mig", "p50"]
+
+[[bench]]
+run_name = "cuda-amig-poison50"
+arch = "mig"
+dataset = "poisoned_needle"
+poison_ratio = 0.50
+num_layers = 6
+hidden_size = 256
+ffn_mult = 2.0
+num_heads = 8
+num_kv_heads = 4
+seq_len = 256
+batch_size = 4
+vocab_size = 4096
+warmup = 50
+steps = 2000
+lr = 3e-4
+device = "cuda"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+mig_keep_ratio = 0.05
+mig_layer_keep_ratios = [0.05, 0.05, 0.10, 0.50, 1.0, 1.0]
+aux_warmup_steps = 200
+tags = ["mig-poison", "poisoned_needle", "amig", "p50"]
+
+# ═══════════════════════════════════════════════════════════════
+#  poison_ratio = 0.70 (70% corruption — moderate)
+# ═══════════════════════════════════════════════════════════════
+
+[[bench]]
+run_name = "cuda-gqa-poison70"
+arch = "gqa"
+dataset = "poisoned_needle"
+poison_ratio = 0.70
+num_layers = 6
+hidden_size = 256
+ffn_mult = 2.0
+num_heads = 8
+num_kv_heads = 4
+seq_len = 256
+batch_size = 4
+vocab_size = 4096
+warmup = 50
+steps = 2000
+lr = 3e-4
+device = "cuda"
+dtype = "float32"
+tags = ["mig-poison", "poisoned_needle", "gqa", "p70"]
+
+[[bench]]
+run_name = "cuda-mig-poison70"
+arch = "mig"
+dataset = "poisoned_needle"
+poison_ratio = 0.70
+num_layers = 6
+hidden_size = 256
+ffn_mult = 2.0
+num_heads = 8
+num_kv_heads = 4
+seq_len = 256
+batch_size = 4
+vocab_size = 4096
+warmup = 50
+steps = 2000
+lr = 3e-4
+device = "cuda"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+aux_warmup_steps = 200
+tags = ["mig-poison", "poisoned_needle", "mig", "p70"]
+
+[[bench]]
+run_name = "cuda-amig-poison70"
+arch = "mig"
+dataset = "poisoned_needle"
+poison_ratio = 0.70
+num_layers = 6
+hidden_size = 256
+ffn_mult = 2.0
+num_heads = 8
+num_kv_heads = 4
+seq_len = 256
+batch_size = 4
+vocab_size = 4096
+warmup = 50
+steps = 2000
+lr = 3e-4
+device = "cuda"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+mig_keep_ratio = 0.05
+mig_layer_keep_ratios = [0.05, 0.05, 0.10, 0.50, 1.0, 1.0]
+aux_warmup_steps = 200
+tags = ["mig-poison", "poisoned_needle", "amig", "p70"]
+
+# ═══════════════════════════════════════════════════════════════
+#  poison_ratio = 0.85 (85% corruption — heavy)
+# ═══════════════════════════════════════════════════════════════
+
+[[bench]]
+run_name = "cuda-gqa-poison85"
+arch = "gqa"
+dataset = "poisoned_needle"
+poison_ratio = 0.85
+num_layers = 6
+hidden_size = 256
+ffn_mult = 2.0
+num_heads = 8
+num_kv_heads = 4
+seq_len = 256
+batch_size = 4
+vocab_size = 4096
+warmup = 50
+steps = 2000
+lr = 3e-4
+device = "cuda"
+dtype = "float32"
+tags = ["mig-poison", "poisoned_needle", "gqa", "p85"]
+
+[[bench]]
+run_name = "cuda-mig-poison85"
+arch = "mig"
+dataset = "poisoned_needle"
+poison_ratio = 0.85
+num_layers = 6
+hidden_size = 256
+ffn_mult = 2.0
+num_heads = 8
+num_kv_heads = 4
+seq_len = 256
+batch_size = 4
+vocab_size = 4096
+warmup = 50
+steps = 2000
+lr = 3e-4
+device = "cuda"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+aux_warmup_steps = 200
+tags = ["mig-poison", "poisoned_needle", "mig", "p85"]
+
+[[bench]]
+run_name = "cuda-amig-poison85"
+arch = "mig"
+dataset = "poisoned_needle"
+poison_ratio = 0.85
+num_layers = 6
+hidden_size = 256
+ffn_mult = 2.0
+num_heads = 8
+num_kv_heads = 4
+seq_len = 256
+batch_size = 4
+vocab_size = 4096
+warmup = 50
+steps = 2000
+lr = 3e-4
+device = "cuda"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+mig_keep_ratio = 0.05
+mig_layer_keep_ratios = [0.05, 0.05, 0.10, 0.50, 1.0, 1.0]
+aux_warmup_steps = 200
+tags = ["mig-poison", "poisoned_needle", "amig", "p85"]
+
+# ═══════════════════════════════════════════════════════════════
+#  poison_ratio = 0.95 (95% corruption — extreme)
+# ═══════════════════════════════════════════════════════════════
+
+[[bench]]
+run_name = "cuda-gqa-poison95"
+arch = "gqa"
+dataset = "poisoned_needle"
+poison_ratio = 0.95
+num_layers = 6
+hidden_size = 256
+ffn_mult = 2.0
+num_heads = 8
+num_kv_heads = 4
+seq_len = 256
+batch_size = 4
+vocab_size = 4096
+warmup = 50
+steps = 2000
+lr = 3e-4
+device = "cuda"
+dtype = "float32"
+tags = ["mig-poison", "poisoned_needle", "gqa", "p95"]
+
+[[bench]]
+run_name = "cuda-mig-poison95"
+arch = "mig"
+dataset = "poisoned_needle"
+poison_ratio = 0.95
+num_layers = 6
+hidden_size = 256
+ffn_mult = 2.0
+num_heads = 8
+num_kv_heads = 4
+seq_len = 256
+batch_size = 4
+vocab_size = 4096
+warmup = 50
+steps = 2000
+lr = 3e-4
+device = "cuda"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+aux_warmup_steps = 200
+tags = ["mig-poison", "poisoned_needle", "mig", "p95"]
+
+[[bench]]
+run_name = "cuda-amig-poison95"
+arch = "mig"
+dataset = "poisoned_needle"
+poison_ratio = 0.95
+num_layers = 6
+hidden_size = 256
+ffn_mult = 2.0
+num_heads = 8
+num_kv_heads = 4
+seq_len = 256
+batch_size = 4
+vocab_size = 4096
+warmup = 50
+steps = 2000
+lr = 3e-4
+device = "cuda"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+mig_keep_ratio = 0.05
+mig_layer_keep_ratios = [0.05, 0.05, 0.10, 0.50, 1.0, 1.0]
+aux_warmup_steps = 200
+tags = ["mig-poison", "poisoned_needle", "amig", "p95"]

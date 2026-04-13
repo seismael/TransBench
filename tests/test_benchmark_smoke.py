@@ -24,7 +24,7 @@ def test_run_benchmark_smoke_cpu(arch: str):
         steps=1,
         learning_rate=1e-4,
         min_lr=1e-6,
-        dataset="synthetic",
+        dataset="sparse_signal",
         seed=123,
         cache_dir=None,
         offline=False,
@@ -65,7 +65,7 @@ def test_sil_gate_series_collected():
         steps=3,
         learning_rate=1e-4,
         min_lr=1e-6,
-        dataset="synthetic",
+        dataset="sparse_signal",
         seed=42,
         cache_dir=None,
         offline=False,
@@ -107,7 +107,7 @@ def test_mig_gate_series_collected():
         steps=3,
         learning_rate=1e-4,
         min_lr=1e-6,
-        dataset="synthetic",
+        dataset="sparse_signal",
         seed=42,
         cache_dir=None,
         offline=False,
@@ -148,7 +148,7 @@ def test_aux_warmup_ramps_lambda():
         steps=4,
         learning_rate=1e-4,
         min_lr=1e-6,
-        dataset="synthetic",
+        dataset="sparse_signal",
         seed=42,
         cache_dir=None,
         offline=False,
@@ -168,3 +168,85 @@ def test_aux_warmup_ramps_lambda():
     result = run_benchmark(cfg)
     assert result.config["aux_warmup_steps"] == 4
     assert result.metrics.get("mig_gate_series") is not None
+
+
+def test_sparse_signal_dataset_with_mig():
+    """MIG on sparse_signal should produce eval_loss and gate selectivity metrics."""
+    cfg = BenchmarkConfig(
+        arch="mig",
+        num_layers=1,
+        hidden_size=32,
+        ffn_mult=2.0,
+        num_heads=4,
+        num_kv_heads=None,
+        vocab_size=128,
+        initializer_range=0.02,
+        seq_len=32,
+        batch_size=2,
+        warmup=0,
+        steps=3,
+        learning_rate=1e-4,
+        min_lr=1e-6,
+        dataset="sparse_signal",
+        seed=42,
+        cache_dir=None,
+        offline=False,
+        device="cpu",
+        dtype="float32",
+        tokenizer_model="gpt2",
+        mig_gate_dim=16,
+        mig_lambda=1e-3,
+        sil_num_latent_rules=64,
+        sil_temperature=1.0,
+        sil_hard_train=True,
+        sil_hard_eval=True,
+        asr_noise_std=0.01,
+        asr_lambda=0.0,
+        signal_ratio=0.15,
+        motif_len=4,
+    )
+    result = run_benchmark(cfg)
+    assert result.config["dataset"] == "sparse_signal"
+    assert result.config["signal_ratio"] == 0.15
+    assert result.metrics["eval_loss"] is not None
+    assert result.metrics["mig_gate_signal_mean"] is not None
+    assert result.metrics["mig_gate_noise_mean"] is not None
+    assert result.metrics["mig_gate_selectivity"] is not None
+
+
+def test_eval_loss_collected():
+    """eval_loss should be computed for any architecture/dataset."""
+    cfg = BenchmarkConfig(
+        arch="gqa",
+        num_layers=1,
+        hidden_size=32,
+        ffn_mult=2.0,
+        num_heads=4,
+        num_kv_heads=None,
+        vocab_size=128,
+        initializer_range=0.02,
+        seq_len=16,
+        batch_size=2,
+        warmup=0,
+        steps=2,
+        learning_rate=1e-4,
+        min_lr=1e-6,
+        dataset="sparse_signal",
+        seed=42,
+        cache_dir=None,
+        offline=False,
+        device="cpu",
+        dtype="float32",
+        tokenizer_model="gpt2",
+        mig_gate_dim=64,
+        mig_lambda=0.0,
+        sil_num_latent_rules=64,
+        sil_temperature=1.0,
+        sil_hard_train=True,
+        sil_hard_eval=True,
+        asr_noise_std=0.01,
+        asr_lambda=0.0,
+    )
+    result = run_benchmark(cfg)
+    assert result.metrics["eval_loss"] is not None
+    assert result.metrics["eval_loss"] > 0

@@ -16,7 +16,7 @@ try:
 except Exception:  # pragma: no cover
     psutil = None  # type: ignore
 
-from transbench.datasets import default_cache_dir, is_supported_dataset, make_sampler, sample_input_ids
+from transbench.datasets import default_cache_dir, is_supported_dataset, make_sampler, sample_input_ids, sparse_signal_positions
 from transbench.reporting import BenchmarkResult, ModelBreakdown, SystemInfo
 
 
@@ -54,6 +54,8 @@ class BenchmarkConfig:
     mig_keep_ratio: float = 0.7
     mig_layer_keep_ratios: tuple[float, ...] | None = None
     poison_ratio: float = 0.85
+    signal_ratio: float = 0.15
+    motif_len: int = 8
     sil_lambda: float = 0.0
     aux_warmup_steps: int = 0
     sil_temperature_final: float | None = None
@@ -134,6 +136,17 @@ def _collect_gate_means(model: torch.nn.Module) -> dict[str, float]:
     if sil_vals:
         means["sil_gate_mean"] = sum(sil_vals) / len(sil_vals)
     return means
+
+
+def _collect_mig_gate_per_token(model: torch.nn.Module) -> list[torch.Tensor]:
+    """Collect per-token gate tensors [B, N] from all MIG layers."""
+    gates: list[torch.Tensor] = []
+    for module in model.modules():
+        if type(module).__name__ == "MIGAttention":
+            gt = getattr(module, "_last_gate_per_token", None)
+            if gt is not None and isinstance(gt, torch.Tensor):
+                gates.append(gt)
+    return gates
 
 
 def _set_sil_temperature(model: torch.nn.Module, temperature: float) -> None:
@@ -376,20 +389,20 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
     system = _get_system_info(device)
     breakdown = _parameter_breakdown(model)
 
-    dataset = (cfg.dataset or "synthetic").lower().strip()
+    dataset = (cfg.dataset or "tinystories").lower().strip()
     if not is_supported_dataset(dataset):
         raise ValueError(
-            f"Unsupported dataset '{cfg.dataset}'. Use 'tinystories' or synthetic/zeros/ramp."
+            f"Unsupported dataset '{cfg.dataset}'. Use 'tinystories', 'poisoned_needle', 'sparse_signal', 'zeros', or 'ramp'."
         )
 
     cache_dir = Path(cfg.cache_dir).expanduser() if cfg.cache_dir is not None else default_cache_dir()
     offline = bool(cfg.offline)
     seed = _stable_seed(dataset, cfg.seed)
 
-    # For TinyStories / poisoned_needle we sample fresh batches per step.
-    # For synthetic/zeros/ramp we can just reuse a fixed batch.
+    # For TinyStories / poisoned_needle / sparse_signal we sample fresh batches per step.
+    # For zeros/ramp we can just reuse a fixed batch.
     sampler = None
-    if dataset in {"tinystories", "poisoned_needle"}:
+    if dataset in {"tinystories", "poisoned_needle", "sparse_signal"}:
         sampler = make_sampler(
             dataset,
             cache_dir=cache_dir,
@@ -397,6 +410,8 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
             seed=int(seed),
             offline=offline,
             poison_ratio=float(getattr(cfg, "poison_ratio", 0.85)),
+            signal_ratio=float(getattr(cfg, "signal_ratio", 0.15)),
+            motif_len=int(getattr(cfg, "motif_len", 8)),
         )
         ids_np = sampler(batch_size=int(cfg.batch_size), seq_len=int(cfg.seq_len), vocab_size=int(cfg.vocab_size))
     else:
@@ -645,6 +660,83 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
     else:
         peak_mem_mb = float(rss_peak_mb) if rss_peak_mb is not None else None
 
+    # ── Eval loss on a held-out batch (different seed) ──
+    eval_loss = None
+    eval_ids = None
+    try:
+        model.eval()
+        with torch.no_grad():
+            eval_seed = int(seed) + 1000
+            if sampler is not None:
+                # Create a separate sampler with a different seed for eval.
+                eval_sampler = make_sampler(
+                    dataset,
+                    cache_dir=cache_dir,
+                    tokenizer_model=getattr(cfg, "tokenizer_model", "gpt2"),
+                    seed=eval_seed,
+                    offline=offline,
+                    poison_ratio=float(getattr(cfg, "poison_ratio", 0.85)),
+                    signal_ratio=float(getattr(cfg, "signal_ratio", 0.15)),
+                    motif_len=int(getattr(cfg, "motif_len", 8)),
+                )
+                eval_np = eval_sampler(
+                    batch_size=int(cfg.batch_size), seq_len=int(cfg.seq_len),
+                    vocab_size=int(cfg.vocab_size),
+                )
+            else:
+                eval_np = sample_input_ids(
+                    dataset,
+                    batch_size=int(cfg.batch_size), seq_len=int(cfg.seq_len),
+                    vocab_size=int(cfg.vocab_size), seed=eval_seed,
+                    cache_dir=cache_dir,
+                    tokenizer_model=getattr(cfg, "tokenizer_model", "gpt2"),
+                    offline=offline,
+                )
+            eval_ids = torch.from_numpy(eval_np).to(device=device, dtype=torch.long)
+            eval_loss = float(model(eval_ids, return_loss=True).detach().cpu())
+    except Exception:
+        eval_loss = None
+
+    # ── Gate selectivity diagnostic (MIG + sparse_signal only) ──
+    gate_signal_mean = None
+    gate_noise_mean = None
+    gate_selectivity = None
+    if dataset == "sparse_signal" and cfg.arch.lower() == "mig":
+        try:
+            model.eval()
+            sig_ratio = float(getattr(cfg, "signal_ratio", 0.15))
+            sig_positions = sparse_signal_positions(int(cfg.seq_len), sig_ratio)
+            sig_set = set(sig_positions.tolist())
+            noise_positions = np.array([i for i in range(cfg.seq_len) if i not in sig_set], dtype=np.int64)
+
+            # Run a diagnostic forward pass on the eval batch (already computed above).
+            with torch.no_grad():
+                if eval_ids is None:
+                    # Fallback: generate a fresh batch.
+                    diag_rng = np.random.default_rng(int(seed) + 2000)
+                    from transbench.datasets import _generate_sparse_signal
+                    diag_np = _generate_sparse_signal(
+                        batch_size=int(cfg.batch_size), seq_len=int(cfg.seq_len),
+                        vocab_size=int(cfg.vocab_size), signal_ratio=sig_ratio,
+                        motif_len=int(getattr(cfg, "motif_len", 8)), rng=diag_rng,
+                    )
+                    eval_ids = torch.from_numpy(diag_np).to(device=device, dtype=torch.long)
+                _ = model(eval_ids, return_loss=False)
+
+            # Collect per-token gate values from all MIG layers.
+            gate_tensors = _collect_mig_gate_per_token(model)
+            if gate_tensors:
+                # Average across all MIG layers → [B, N]
+                avg_gate = torch.stack(gate_tensors).mean(dim=0)
+                if len(sig_positions) > 0:
+                    gate_signal_mean = float(avg_gate[:, sig_positions].mean().cpu())
+                if len(noise_positions) > 0:
+                    gate_noise_mean = float(avg_gate[:, noise_positions].mean().cpu())
+                if gate_signal_mean is not None and gate_noise_mean is not None and gate_noise_mean > 1e-8:
+                    gate_selectivity = gate_signal_mean / gate_noise_mean
+        except Exception:
+            pass
+
     return BenchmarkResult(
         system=system,
         model=breakdown,
@@ -682,6 +774,8 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
             "sil_lambda": float(getattr(cfg, "sil_lambda", 0.0)),
             "aux_warmup_steps": int(getattr(cfg, "aux_warmup_steps", 0)),
             "sil_temperature_final": sil_temp_final,
+            "signal_ratio": float(getattr(cfg, "signal_ratio", 0.15)),
+            "motif_len": int(getattr(cfg, "motif_len", 8)),
         },
         metrics={
             "forward_ms_mean": float(np.mean(fwd_times) * 1000.0),
@@ -702,5 +796,9 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
             "mig_gate_series": mig_gate_series if mig_gate_series else None,
             "sil_gate_series": sil_gate_series if sil_gate_series else None,
             "peak_mem_mb": peak_mem_mb,
+            "eval_loss": eval_loss,
+            "mig_gate_signal_mean": gate_signal_mean,
+            "mig_gate_noise_mean": gate_noise_mean,
+            "mig_gate_selectivity": gate_selectivity,
         },
     )

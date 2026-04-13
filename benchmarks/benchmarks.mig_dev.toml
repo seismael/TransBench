@@ -1,0 +1,303 @@
+# MIG Noise-Advantage Development Sweep (CPU, fast iteration)
+# Goal: prove MIG beats GQA on noisy data where signal is sparse.
+# 12 runs: 3 architectures × 4 noise levels (signal_ratio sweep)
+
+# ═══════════════════════════════════════════════════════════════
+#  signal_ratio = 0.50 (50% signal — easy, GQA should win)
+# ═══════════════════════════════════════════════════════════════
+
+[[bench]]
+run_name = "dev-gqa-sig50"
+arch = "gqa"
+dataset = "sparse_signal"
+signal_ratio = 0.50
+motif_len = 8
+num_layers = 4
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 20
+steps = 200
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+tags = ["mig-dev", "sparse_signal", "gqa", "sig50"]
+
+[[bench]]
+run_name = "dev-mig-sig50"
+arch = "mig"
+dataset = "sparse_signal"
+signal_ratio = 0.50
+motif_len = 8
+num_layers = 4
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 20
+steps = 200
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+aux_warmup_steps = 50
+tags = ["mig-dev", "sparse_signal", "mig", "sig50"]
+
+[[bench]]
+run_name = "dev-amig-sig50"
+arch = "mig"
+dataset = "sparse_signal"
+signal_ratio = 0.50
+motif_len = 8
+num_layers = 4
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 20
+steps = 200
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+mig_keep_ratio = 0.05
+mig_layer_keep_ratios = [0.05, 0.05, 0.50, 1.0]
+aux_warmup_steps = 50
+tags = ["mig-dev", "sparse_signal", "amig", "sig50"]
+
+# ═══════════════════════════════════════════════════════════════
+#  signal_ratio = 0.30 (30% signal — moderate noise)
+# ═══════════════════════════════════════════════════════════════
+
+[[bench]]
+run_name = "dev-gqa-sig30"
+arch = "gqa"
+dataset = "sparse_signal"
+signal_ratio = 0.30
+motif_len = 8
+num_layers = 4
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 20
+steps = 200
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+tags = ["mig-dev", "sparse_signal", "gqa", "sig30"]
+
+[[bench]]
+run_name = "dev-mig-sig30"
+arch = "mig"
+dataset = "sparse_signal"
+signal_ratio = 0.30
+motif_len = 8
+num_layers = 4
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 20
+steps = 200
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+aux_warmup_steps = 50
+tags = ["mig-dev", "sparse_signal", "mig", "sig30"]
+
+[[bench]]
+run_name = "dev-amig-sig30"
+arch = "mig"
+dataset = "sparse_signal"
+signal_ratio = 0.30
+motif_len = 8
+num_layers = 4
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 20
+steps = 200
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+mig_keep_ratio = 0.05
+mig_layer_keep_ratios = [0.05, 0.05, 0.50, 1.0]
+aux_warmup_steps = 50
+tags = ["mig-dev", "sparse_signal", "amig", "sig30"]
+
+# ═══════════════════════════════════════════════════════════════
+#  signal_ratio = 0.15 (15% signal — MIG advantage region)
+# ═══════════════════════════════════════════════════════════════
+
+[[bench]]
+run_name = "dev-gqa-sig15"
+arch = "gqa"
+dataset = "sparse_signal"
+signal_ratio = 0.15
+motif_len = 8
+num_layers = 4
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 20
+steps = 200
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+tags = ["mig-dev", "sparse_signal", "gqa", "sig15"]
+
+[[bench]]
+run_name = "dev-mig-sig15"
+arch = "mig"
+dataset = "sparse_signal"
+signal_ratio = 0.15
+motif_len = 8
+num_layers = 4
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 20
+steps = 200
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+aux_warmup_steps = 50
+tags = ["mig-dev", "sparse_signal", "mig", "sig15"]
+
+[[bench]]
+run_name = "dev-amig-sig15"
+arch = "mig"
+dataset = "sparse_signal"
+signal_ratio = 0.15
+motif_len = 8
+num_layers = 4
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 20
+steps = 200
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+mig_keep_ratio = 0.05
+mig_layer_keep_ratios = [0.05, 0.05, 0.50, 1.0]
+aux_warmup_steps = 50
+tags = ["mig-dev", "sparse_signal", "amig", "sig15"]
+
+# ═══════════════════════════════════════════════════════════════
+#  signal_ratio = 0.05 (5% signal — extreme noise, MIG must win)
+# ═══════════════════════════════════════════════════════════════
+
+[[bench]]
+run_name = "dev-gqa-sig05"
+arch = "gqa"
+dataset = "sparse_signal"
+signal_ratio = 0.05
+motif_len = 8
+num_layers = 4
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 20
+steps = 200
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+tags = ["mig-dev", "sparse_signal", "gqa", "sig05"]
+
+[[bench]]
+run_name = "dev-mig-sig05"
+arch = "mig"
+dataset = "sparse_signal"
+signal_ratio = 0.05
+motif_len = 8
+num_layers = 4
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 20
+steps = 200
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+aux_warmup_steps = 50
+tags = ["mig-dev", "sparse_signal", "mig", "sig05"]
+
+[[bench]]
+run_name = "dev-amig-sig05"
+arch = "mig"
+dataset = "sparse_signal"
+signal_ratio = 0.05
+motif_len = 8
+num_layers = 4
+hidden_size = 128
+ffn_mult = 2.0
+num_heads = 4
+num_kv_heads = 2
+seq_len = 128
+batch_size = 4
+vocab_size = 4096
+warmup = 20
+steps = 200
+lr = 3e-4
+device = "cpu"
+dtype = "float32"
+mig_gate_dim = 64
+mig_lambda = 0.001
+mig_keep_ratio = 0.05
+mig_layer_keep_ratios = [0.05, 0.05, 0.50, 1.0]
+aux_warmup_steps = 50
+tags = ["mig-dev", "sparse_signal", "amig", "sig05"]
