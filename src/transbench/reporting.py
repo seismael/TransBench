@@ -211,6 +211,7 @@ def _update_manifest(cfg: ReportsConfig, report_path: Path, report_payload: dict
         "forward_ms_mean": report_payload.get("metrics", {}).get("forward_ms_mean"),
         "loss_mean": report_payload.get("metrics", {}).get("loss_mean"),
         "peak_mem_mb": report_payload.get("metrics", {}).get("peak_mem_mb"),
+        "eval_loss": report_payload.get("metrics", {}).get("eval_loss"),
     }
 
     if manifest_path.exists():
@@ -262,6 +263,7 @@ def rebuild_manifest(cfg: ReportsConfig) -> Path:
                 "forward_ms_mean": payload.get("metrics", {}).get("forward_ms_mean"),
                 "loss_mean": payload.get("metrics", {}).get("loss_mean"),
                 "peak_mem_mb": payload.get("metrics", {}).get("peak_mem_mb"),
+                "eval_loss": payload.get("metrics", {}).get("eval_loss"),
             }
         )
 

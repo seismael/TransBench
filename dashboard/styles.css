@@ -658,3 +658,177 @@ canvas {
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* ========= New Tab Components ========= */
+
+/* Panel header controls (inline selects / toggles) */
+.panel__header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Tabs overflow: allow horizontal scroll for many tabs */
+.tabs {
+  flex-wrap: wrap;
+}
+
+/* Chart wrapper variants */
+.chart-wrapper--half {
+  position: relative;
+  padding: 12px 14px 14px;
+  flex: 1 1 45%;
+  min-height: 280px;
+  min-width: 300px;
+}
+
+.chart-wrapper--quad {
+  position: relative;
+  padding: 10px 12px 12px;
+  flex: 1 1 calc(50% - 8px);
+  min-height: 260px;
+  min-width: 280px;
+}
+
+.chart-wrapper--radar {
+  position: relative;
+  padding: 12px 14px 14px;
+  min-height: 380px;
+  max-width: 660px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Layout grids for new tabs */
+.crossover-layout,
+.gates-layout,
+.stability-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+}
+
+.radar-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 14px 14px;
+}
+
+.inspector-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 14px 14px;
+}
+
+.inspector-charts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Summary cards row */
+.summary-cards {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 4px 4px 8px;
+}
+
+.summary-card {
+  flex: 1 1 140px;
+  min-width: 120px;
+  max-width: 200px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-card__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  font-weight: 700;
+}
+
+.summary-card__value {
+  font-size: 22px;
+  font-weight: 820;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-card__value--good { color: var(--success-text); }
+.summary-card__value--bad { color: var(--danger-text); }
+.summary-card__value--neutral { color: var(--text-main); }
+
+.summary-card__sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Info cards (Run Inspector) */
+.info-cards {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.info-card {
+  flex: 1 1 140px;
+  min-width: 120px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+
+.info-card__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.info-card__value {
+  font-size: 13px;
+  font-weight: 680;
+  word-break: break-all;
+}
+
+/* Tag badges */
+.tag-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 680;
+  background: rgba(79, 70, 229, 0.08);
+  color: var(--primary);
+  border: 1px solid rgba(79, 70, 229, 0.18);
+  margin: 2px 2px;
+}
+
+/* Compact data table variant */
+.data-table--compact th,
+.data-table--compact td {
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
+/* Radar "Best at" table */
+#radarTableWrap {
+  max-width: 660px;
+  margin: 0 auto;
+  width: 100%;
+}

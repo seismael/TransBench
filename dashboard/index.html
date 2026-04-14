@@ -122,6 +122,61 @@
             >
               Comparative Analysis
             </button>
+            <button
+              class="tab"
+              id="tab-crossover"
+              role="tab"
+              type="button"
+              aria-selected="false"
+              aria-controls="panel-crossover"
+              tabindex="-1"
+            >
+              Noise Crossover
+            </button>
+            <button
+              class="tab"
+              id="tab-gates"
+              role="tab"
+              type="button"
+              aria-selected="false"
+              aria-controls="panel-gates"
+              tabindex="-1"
+            >
+              Gate Dynamics
+            </button>
+            <button
+              class="tab"
+              id="tab-stability"
+              role="tab"
+              type="button"
+              aria-selected="false"
+              aria-controls="panel-stability"
+              tabindex="-1"
+            >
+              Training Stability
+            </button>
+            <button
+              class="tab"
+              id="tab-radar"
+              role="tab"
+              type="button"
+              aria-selected="false"
+              aria-controls="panel-radar"
+              tabindex="-1"
+            >
+              Cross-Track Radar
+            </button>
+            <button
+              class="tab"
+              id="tab-inspector"
+              role="tab"
+              type="button"
+              aria-selected="false"
+              aria-controls="panel-inspector"
+              tabindex="-1"
+            >
+              Run Inspector
+            </button>
           </div>
 
           <div class="tab-panels">
@@ -187,6 +242,143 @@
                     <tbody></tbody>
                   </table>
                   <div id="tableEmpty" class="empty" hidden>No reports found for this dataset/selection.</div>
+                </div>
+              </section>
+            </div>
+
+            <!-- Tab 4: Noise Crossover -->
+            <div class="tab-panel" id="panel-crossover" role="tabpanel" aria-labelledby="tab-crossover" hidden>
+              <section class="panel panel--fill">
+                <div class="panel__header">
+                  <div>
+                    <h3>MIG Noise Crossover</h3>
+                    <span class="muted">Eval loss vs noise level — GQA / MIG / A-MIG</span>
+                  </div>
+                  <div class="panel__header-controls">
+                    <div class="seg-group" id="crossoverDatasetToggle">
+                      <button class="seg-btn is-active" data-value="poisoned_needle" type="button">Poisoned Needle</button>
+                      <button class="seg-btn" data-value="sparse_signal" type="button">Sparse Signal</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="crossover-layout">
+                  <div class="summary-cards" id="crossoverCards"></div>
+                  <div class="chart-wrapper chart-wrapper--half">
+                    <canvas id="crossoverLineChart"></canvas>
+                  </div>
+                  <div class="chart-wrapper chart-wrapper--half">
+                    <canvas id="crossoverDeltaChart"></canvas>
+                  </div>
+                  <div id="crossoverEmpty" class="empty" hidden>No MIG noise sweep reports found. Run the mig_poison_sweep or mig_cuda benchmark suite.</div>
+                </div>
+              </section>
+            </div>
+
+            <!-- Tab 5: Gate Dynamics -->
+            <div class="tab-panel" id="panel-gates" role="tabpanel" aria-labelledby="tab-gates" hidden>
+              <section class="panel panel--fill">
+                <div class="panel__header">
+                  <div>
+                    <h3>Gate Dynamics</h3>
+                    <span class="muted">Gate evolution, selectivity, and auxiliary loss</span>
+                  </div>
+                  <div class="panel__header-controls">
+                    <div class="seg-group" id="gateArchToggle">
+                      <button class="seg-btn is-active" data-value="sil" type="button">SIL Gate</button>
+                      <button class="seg-btn" data-value="mig" type="button">MIG Gate</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="gates-layout">
+                  <div class="chart-wrapper chart-wrapper--half">
+                    <canvas id="gateEvoChart"></canvas>
+                  </div>
+                  <div class="chart-wrapper chart-wrapper--half">
+                    <canvas id="auxLossChart"></canvas>
+                  </div>
+                  <div id="gatesEmpty" class="empty" hidden>No gate series data found in selected reports.</div>
+                </div>
+              </section>
+            </div>
+
+            <!-- Tab 6: Training Stability -->
+            <div class="tab-panel" id="panel-stability" role="tabpanel" aria-labelledby="tab-stability" hidden>
+              <section class="panel panel--fill">
+                <div class="panel__header">
+                  <div>
+                    <h3>Training Stability</h3>
+                    <span class="muted">Timing, memory, generalization, and parameter breakdown</span>
+                  </div>
+                </div>
+                <div class="stability-grid">
+                  <div class="chart-wrapper chart-wrapper--quad">
+                    <canvas id="timingChart"></canvas>
+                  </div>
+                  <div class="chart-wrapper chart-wrapper--quad">
+                    <canvas id="memoryChart"></canvas>
+                  </div>
+                  <div class="chart-wrapper chart-wrapper--quad">
+                    <canvas id="evalGapChart"></canvas>
+                  </div>
+                  <div class="chart-wrapper chart-wrapper--quad">
+                    <canvas id="paramBreakdownChart"></canvas>
+                  </div>
+                  <div id="stabilityEmpty" class="empty" hidden>No data for current selection.</div>
+                </div>
+              </section>
+            </div>
+
+            <!-- Tab 7: Cross-Track Radar -->
+            <div class="tab-panel" id="panel-radar" role="tabpanel" aria-labelledby="tab-radar" hidden>
+              <section class="panel panel--fill">
+                <div class="panel__header">
+                  <div>
+                    <h3>Cross-Track Radar</h3>
+                    <span class="muted">Multi-axis normalized comparison (higher = better on all axes)</span>
+                  </div>
+                </div>
+                <div class="radar-layout">
+                  <div class="chart-wrapper chart-wrapper--radar">
+                    <canvas id="radarChart"></canvas>
+                  </div>
+                  <div class="table-responsive" id="radarTableWrap">
+                    <table id="radarBestTable" class="data-table data-table--compact">
+                      <thead></thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                  <div id="radarEmpty" class="empty" hidden>Select at least 2 architectures to render radar.</div>
+                </div>
+              </section>
+            </div>
+
+            <!-- Tab 8: Run Inspector -->
+            <div class="tab-panel" id="panel-inspector" role="tabpanel" aria-labelledby="tab-inspector" hidden>
+              <section class="panel panel--fill">
+                <div class="panel__header">
+                  <div>
+                    <h3>Run Inspector</h3>
+                    <span class="muted">Deep dive into a single run</span>
+                  </div>
+                  <select id="inspectorRunSelect" class="select-inline"></select>
+                </div>
+                <div class="inspector-layout" id="inspectorBody">
+                  <div class="info-cards" id="inspectorCards"></div>
+                  <div class="inspector-charts">
+                    <div class="chart-wrapper chart-wrapper--half">
+                      <canvas id="inspectorLossChart"></canvas>
+                    </div>
+                    <div class="chart-wrapper chart-wrapper--half">
+                      <canvas id="inspectorGateChart"></canvas>
+                    </div>
+                  </div>
+                  <div class="table-responsive">
+                    <table id="inspectorConfigTable" class="data-table data-table--compact">
+                      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                  <div id="inspectorEmpty" class="empty" hidden>Select a run above to inspect.</div>
                 </div>
               </section>
             </div>
