@@ -776,6 +776,7 @@ def run_benchmark(cfg: BenchmarkConfig) -> BenchmarkResult:
             "sil_temperature_final": sil_temp_final,
             "signal_ratio": float(getattr(cfg, "signal_ratio", 0.15)),
             "motif_len": int(getattr(cfg, "motif_len", 8)),
+            "poison_ratio": float(getattr(cfg, "poison_ratio", 0.85)),
         },
         metrics={
             "forward_ms_mean": float(np.mean(fwd_times) * 1000.0),

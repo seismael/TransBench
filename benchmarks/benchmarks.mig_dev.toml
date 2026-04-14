@@ -1,10 +1,10 @@
 # MIG Noise-Advantage Development Sweep (CPU, fast iteration)
 # Goal: prove MIG beats GQA on noisy data where signal is sparse.
-# 12 runs: 3 architectures × 4 noise levels (signal_ratio sweep)
+# 12 runs: 3 architectures x 4 noise levels (signal_ratio sweep)
 
-# ═══════════════════════════════════════════════════════════════
-#  signal_ratio = 0.50 (50% signal — easy, GQA should win)
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
+#  signal_ratio = 0.50 (50% signal - easy, GQA should win)
+# ===============================================================
 
 [[bench]]
 run_name = "dev-gqa-sig50"
@@ -77,9 +77,9 @@ mig_layer_keep_ratios = [0.05, 0.05, 0.50, 1.0]
 aux_warmup_steps = 50
 tags = ["mig-dev", "sparse_signal", "amig", "sig50"]
 
-# ═══════════════════════════════════════════════════════════════
-#  signal_ratio = 0.30 (30% signal — moderate noise)
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
+#  signal_ratio = 0.30 (30% signal - moderate noise)
+# ===============================================================
 
 [[bench]]
 run_name = "dev-gqa-sig30"
@@ -152,9 +152,9 @@ mig_layer_keep_ratios = [0.05, 0.05, 0.50, 1.0]
 aux_warmup_steps = 50
 tags = ["mig-dev", "sparse_signal", "amig", "sig30"]
 
-# ═══════════════════════════════════════════════════════════════
-#  signal_ratio = 0.15 (15% signal — MIG advantage region)
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
+#  signal_ratio = 0.15 (15% signal - MIG advantage region)
+# ===============================================================
 
 [[bench]]
 run_name = "dev-gqa-sig15"
@@ -227,9 +227,9 @@ mig_layer_keep_ratios = [0.05, 0.05, 0.50, 1.0]
 aux_warmup_steps = 50
 tags = ["mig-dev", "sparse_signal", "amig", "sig15"]
 
-# ═══════════════════════════════════════════════════════════════
-#  signal_ratio = 0.05 (5% signal — extreme noise, MIG must win)
-# ═══════════════════════════════════════════════════════════════
+# ===============================================================
+#  signal_ratio = 0.05 (5% signal - extreme noise, MIG must win)
+# ===============================================================
 
 [[bench]]
 run_name = "dev-gqa-sig05"

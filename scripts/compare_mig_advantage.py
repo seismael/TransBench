@@ -66,8 +66,15 @@ def _noise_pct(report: dict[str, Any]) -> float | None:
         sr = cfg.get("signal_ratio", 0.15)
         return round((1.0 - sr) * 100, 1)
     if ds == "poisoned_needle":
-        pr = cfg.get("poison_ratio", 0.85)
-        return round(pr * 100, 1)
+        pr = cfg.get("poison_ratio")
+        if pr is not None:
+            return round(float(pr) * 100, 1)
+        # Fallback: extract from tags like "p50", "p70", "p85", "p95"
+        tags = _get_tags(report)
+        for t in tags:
+            if t.startswith("p") and t[1:].isdigit():
+                return float(t[1:])
+        return round(0.85 * 100, 1)
     return None
 
 

@@ -1,5 +1,5 @@
 # CUDA benchmark suite
-# 8 architectures × TinyStories (real language modeling)
+# 8 architectures x TinyStories (real language modeling)
 # Scaled: hidden=256, layers=6, heads=8, seq_len=256, 2000 steps
 # Includes aux_warmup_steps and sil_temperature_final for novel archs
 # VRAM budget: ~300-500 MB (well within MX150 2 GB)
